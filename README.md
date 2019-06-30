@@ -112,5 +112,5 @@ I created this project to manage [skoville/webpack-hot-module-replacement](https
 
 1. create VSCode extension which understands this config file, showing errors, auto suggesting values, and click to go to npm or other package support.
 1. Allow comments in config file.
-1. Ideally make lerna irrelevant here, taking over public capabilities.
+1. Ideally make lerna irrelevant here, taking over npm publishing capabilities.
 1. Support independent versioning? Not sure if this is a good feature or not.
