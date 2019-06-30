@@ -1,6 +1,6 @@
 {
   "name": "@isomorphic-typescript/ts-monorepo",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Tool for maintaining and initializing typescript monorepos",
   "bin": {
     "ts-monorepo": "./distribution/ts-monorepo.js"
@@ -11,8 +11,10 @@
     "patch": "npm version patch -fm",
     "minor": "npm version minor -fm",
     "major": "npm version major -fm",
-    "pub": "npm run build:normal",
-    "postpub": "git push origin master && npm publish"
+    "postpatch": "npm run pub",
+    "postminor": "npm run pub",
+    "postmajor": "npm run pub",
+    "pub": "npm run build:normal && git push origin master && npm publish"
   },
   "author": "Alexander Leung",
   "license": "MIT",
