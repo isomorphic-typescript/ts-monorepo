@@ -82,27 +82,27 @@ The config represents a centralized place to store info about a typescript monor
 The generated tsconfig.json and package.json files from this tool in each package directory are deep merges of the baseConfig object and config object of individual project, with 2 major sets of exceptions to this rule: 
 1. the behavior of merging "package.json" files' "dependencies", "devDependencies", "peerDependencies" fields is not exactly an array merge. Instead,
 the latest versions of the packages listed are always used (fetched from npm), unless the package name is from the monorepo, in which case the lerna version is used.
-1. The tsconfig.json files generated =contain references that point to dependency projects' relative paths and contain mandatory
+1. The tsconfig.json files generated contain references that point to dependency projects' relative paths and contain mandatory enabled compiler options that must be used to enable typescript project references. See the next section for specifics on these options.
 
 ## It's Opinionated
 
 This tool is very opinionated in how a monorepo is managed.  
 1. TypeScript build watch is used.
 1. TypeScript project references are used.
-1. Changes to individual package.jsons and tsconfig.jsons will be overwritten dunring the sync process, so individual settings must be controlled via the centralized config.
+1. Changes to individual package.jsons and tsconfig.jsons will be overwritten during the sync process, so individual settings must be controlled via the centralized config.
 1. All packages will live as direct children under the directory specificed by the `packageRoot` property, unless they are a packaged with a scoped name,
 in which case they will live as a direct child of a folder which is named after the scope, then that folder is a direct child of the `packageRoot`.
-1. The project forces single versioning via Lerna.
+1. The project forces single versioning across all packages in the monorepo.
 1. Certain tsconfig compilerOptions will be enabled without your choice. They are: "composite", "declaration", "declarationMap", "sourceMap". The reasoning behind this is [here](https://github.com/RyanCavanaugh/learn-a#tsconfigsettingsjson). 
 
 ## Nice benefits
 
-1. Now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go in the root level gitignore since they are now all managed/generated automatically.
+1. Now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go in the root level `.gitignore` since they are now all managed/generated automatically.
 1. Now new package setup in the monorepo is very quick; just add a new entry to config file's `packages` object and the tool which watches the config file for saves will create all the folders, install dependencies, and add it to the incremental build process as you update the entry. Essentially this is declarative programming of all the monorepo's build configuration and dependency installation/wiring.
 1. This is a better alternative to tsconfig's own extends functionality, because:
     1. All items are inherited, not just compilerOptions
     1. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
-    1. When specifying relative paths in the ts-monorepo config, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig.
+    1. When specifying relative paths in the ts-monorepo config, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig, whereas when doing this with tsconfig's own `extends` field, the relative paths would be relative to the path of the inherited tsconfig file rather than the project's tsconfig file, which is undesireable in most circumstances I have encountered.
 
 ## An Example?
 
@@ -112,5 +112,6 @@ I created this project to manage [skoville/webpack-hot-module-replacement](https
 
 1. create VSCode extension which understands this config file, showing errors, auto suggesting values, and click to go to npm or other package support.
 1. Allow comments in config file.
+1. Specify protocol for package configs to remove certain entries from inherited baseConfig.
 1. Ideally make lerna irrelevant here, taking over npm publishing capabilities.
 1. Support independent versioning? Not sure if this is a good feature or not.
