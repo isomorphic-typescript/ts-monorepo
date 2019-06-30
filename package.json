@@ -1,6 +1,6 @@
 {
   "name": "@isomorphic-typescript/ts-monorepo",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Tool for maintaining and initializing typescript monorepos",
   "bin": {
     "ts-monorepo": "./distribution/ts-monorepo.js"
@@ -8,9 +8,9 @@
   "scripts": {
     "build:watch": "tsc -b --watch --verbose",
     "build:normal": "npm install && tsc -b --verbose",
-    "patch": "npm version patch -f",
-    "minor": "npm version minor -f",
-    "major": "npm version major -f",
+    "patch": "npm version patch -fm",
+    "minor": "npm version minor -fm",
+    "major": "npm version major -fm",
     "pub": "npm run build:normal",
     "postpub": "git push origin master && npm publish"
   },
