@@ -104,7 +104,7 @@ in which case they will live as a direct child of a folder which is named after 
 
 ## An Example?
 
-I created this project to manage (skoville/webpack-hot-module-replacement)[https://github.com/skoville/webpack-hot-module-replacement]. Notice in that example how there is just one package.json for the root and ts-monorepo.json, and how none of the packages in the monorepo have their package.json or tsconfig.json files saved to the git repo.
+I created this project to manage [skoville/webpack-hot-module-replacement](https://github.com/skoville/webpack-hot-module-replacement). Notice in that example how there is just one package.json for the root and ts-monorepo.json, and how none of the packages in the monorepo have their package.json or tsconfig.json files saved to the git repo.
 
 ## TODO
 
