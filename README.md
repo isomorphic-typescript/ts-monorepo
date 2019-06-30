@@ -1,6 +1,8 @@
 # How to use?
 
-`npx ts-monorepo`
+Install it: `npm i -D @isomorphic-typescript/ts-monorepo`
+
+Then run it: `npx ts-monorepo`
 
 # What is it?
 
