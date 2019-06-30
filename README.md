@@ -98,11 +98,15 @@ in which case they will live as a direct child of a folder which is named after 
 1. Now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go in the root level gitignore since they are now all managed/generated automatically.
 1. Now new package setup in the monorepo is very quick; just add a new entry to config file's `packages` object and the tool which watches the config file for saves will create all the folders, install dependencies, and add it to the incremental build process as you update the entry. Essentially this is declarative programming of all the monorepo's build configuration and dependency installation/wiring.
 1. This is a better alternative to tsconfig's own extends functionality, because:
-11. All items are inherited, not just compilerOptions
-11. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
-11. When specifying relative paths in the ts-monorepo config, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig.
+    1. All items are inherited, not just compilerOptions
+    1. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
+    1. When specifying relative paths in the ts-monorepo config, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig.
 
-## TODO:
+## An Example?
+
+I created this project to manage (skoville/webpack-hot-module-replacement)[https://github.com/skoville/webpack-hot-module-replacement]. Notice in that example how there is just one package.json for the root and ts-monorepo.json, and how none of the packages in the monorepo have their package.json or tsconfig.json files saved to the git repo.
+
+## TODO
 
 1. create VSCode extension which understands this config file, showing errors, auto suggesting values, and click to go to npm or other package support.
 1. Allow comments in config file.
