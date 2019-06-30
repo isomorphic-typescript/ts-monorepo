@@ -1,12 +1,14 @@
 {
   "name": "@isomorphic-typescript/ts-monorepo",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Tool for maintaining and initializing typescript monorepos",
   "bin": {
     "ts-monorepo": "./distribution/ts-monorepo.js"
   },
   "scripts": {
-    "build": "tsc -b --watch --verbose"
+    "build:watch": "tsc -b --watch --verbose",
+    "build:normal": "tsc -b --verbose",
+    "pub": "npm install && npm run build:normal && npm publish"
   },
   "author": "Alexander Leung",
   "license": "MIT",
@@ -19,23 +21,22 @@
     "chokidar": "^3.0.1",
     "deepmerge": "^3.2.1",
     "latest-version": "^5.1.0",
-    "readline": "^1.3.0",
     "validate-npm-package-name": "^3.0.0",
     "typescript-json-validator": "^2.2.2"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/IsomorphicTypeScript/ts-monorepo.git"
+    "type": "git",
+    "url": "https://github.com/IsomorphicTypeScript/ts-monorepo.git"
   },
   "keywords": [
-      "typescript",
-      "lerna",
-      "monorepo",
-      "project",
-      "references",
-      "tsconfig",
-      "json",
-      "incremental",
-      "package.json"
+    "typescript",
+    "lerna",
+    "monorepo",
+    "project",
+    "references",
+    "tsconfig",
+    "json",
+    "incremental",
+    "package.json"
   ]
 }

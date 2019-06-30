@@ -1,8 +1,26 @@
 {
-    "extends": "../../../tsconfig-base.json",
     "compilerOptions": {
+        "module": "commonjs", /* need to use this if targetting es6. Not needed when targetting es5 */
+        "target": "es6",
+        
+        /* Type Definitions */
+        "lib": ["esnext"],
+        "types": ["node"],
+
+        /* Code Quality */
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strict": true, // noImplicitAny noImplicitThis alwaysStrict strictBindCallApply strictFunctionTypes strictPropertyInitialization strictNullChecks
+        "stripInternal": true,
+
+        /* Project References */
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
         "outDir": "./distribution",
-        "rootDir": "./source",
-        "types": ["node"]
+        "rootDir": "./source"
     }
 }
