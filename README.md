@@ -66,6 +66,8 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
 }
 ```
 
+## What it does
+
 The config represents a centralized place to store info about a typescript monorepo. Upon change detection of this config file, this tool will
 1. Validate the config and proceed only if valid.
 1. Create package folder with package.json & tsconfig.json . TODO: support arbitrary configs
@@ -80,6 +82,8 @@ The generated tsconfig.json and package.json files from this tool in each packag
 the latest versions of the packages listed are always used (fetched from npm), unless the package name is from the monorepo, in which case the lerna version is used.
 1. The tsconfig.json files generated =contain references that point to dependency projects' relative paths and contain mandatory
 
+## It's Opinionated
+
 This tool is very opinionated in how a monorepo is managed.  
 1. TypeScript build watch is used.
 1. TypeScript project references are used.
@@ -89,12 +93,17 @@ in which case they will live as a direct child of a folder which is named after 
 1. The project forces single versioning via Lerna.
 1. Certain tsconfig compilerOptions will be enabled without your choice. They are: "composite", "declaration", "declarationMap", "sourceMap". The reasoning behind this is [here](https://github.com/RyanCavanaugh/learn-a#tsconfigsettingsjson). 
 
-The nice thing about this tool is that now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go in
-the root level gitignore since they are now all managed/generated automatically.
+## Nice benefits
 
-Another nice thing is that now new package setup is very quick, just add a new entry to config file's `packages` object and the tool which watches the config file for saves will create all the folders, install dependencies, and add it to the incremental build process. Essentially declarative programming of all the monorepo's build configuration.
+1. Now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go in the root level gitignore since they are now all managed/generated automatically.
+1. Now new package setup in the monorepo is very quick; just add a new entry to config file's `packages` object and the tool which watches the config file for saves will create all the folders, install dependencies, and add it to the incremental build process as you update the entry. Essentially this is declarative programming of all the monorepo's build configuration and dependency installation/wiring.
+1. This is a better alternative to tsconfig's own extends functionality, because:
+11. All items are inherited, not just compilerOptions
+11. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
+11. When specifying relative paths in the ts-monorepo config, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig.
 
-TODOs:
+## TODO:
+
 1. create VSCode extension which understands this config file, showing errors, auto suggesting values, and click to go to npm or other package support.
 1. Allow comments in config file.
 1. Ideally make lerna irrelevant here, taking over public capabilities.
