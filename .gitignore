@@ -1,0 +1,4 @@
+tsconfig.tsbuildinfo
+package-lock.json
+node_modules/
+distribution/
