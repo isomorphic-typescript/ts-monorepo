@@ -80,7 +80,9 @@ The file represents a centralized place to store [DRY](https://en.wikipedia.org/
 1. Restart a `tsc -b --watch` process that builds all packages referenced in `tsconfig-leaves.json` incrementally, therefore building all the packages in correct order.
 
 The generated tsconfig.json and package.json files from this tool in each package directory are a [deepmerge](https://www.npmjs.com/package/deepmerge) of the baseConfig object and config object of individual project, with 2 major caveats to this rule: 
-1. the behavior of merging a `package.json` file's `dependencies`, `devDependencies`, and `peerDependencies` object is first an array merge to get the combined set of dependencies, then a transformation of this array into a valid npm dependency object where each package name refers to the most up-to-date version of that package.
+
+<ol>
+<li> the behavior of merging a `package.json` file's `dependencies`, `devDependencies`, and `peerDependencies` object is first an array merge to get the combined set of dependencies, then a transformation of this array into a valid npm dependency object where each package name refers to the most up-to-date version of that package.
  
  For example, this value for `"baseConfigs"`.`"package.json"`.`"devDependencies"` in `ts-monorepo.json`
  ```json
@@ -100,8 +102,10 @@ The generated tsconfig.json and package.json files from this tool in each packag
  ```
  
  The generated file will rearrange the entries alphabetically, and you will implicitly keep all dependencies throughout your entire monorepo up to date by using this tool. If a package within the dependency array is equal to a package name managed within your monorepo, then the version will be the monorepo version and npm link will be used when installing all the dependencies.
- 
-1. The tsconfig.json files generated contain references that point to dependency projects' relative paths and contain mandatory enabled compiler options that must be used to enable typescript project references to work properly. See the next section for specifics on these options.
+</li>
+<li> The tsconfig.json files generated contain references that point to dependency projects' relative paths and contain mandatory enabled compiler options that must be used to enable typescript project references to work properly. See the next section for specifics on these options.
+<li>
+</ol>
 
 ## It's Opinionated
 
