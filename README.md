@@ -104,7 +104,7 @@ The generated tsconfig.json and package.json files from this tool in each packag
  The generated file will rearrange the entries alphabetically, and you will implicitly keep all dependencies throughout your entire monorepo up to date by using this tool. If a package within the dependency array is equal to a package name managed within your monorepo, then the version will be the monorepo version and npm link will be used when installing all the dependencies.
 </li>
 <li> The tsconfig.json files generated contain references that point to dependency projects' relative paths and contain mandatory enabled compiler options that must be used to enable typescript project references to work properly. See the next section for specifics on these options.
-<li>
+</li>
 </ol>
 
 ## It's Opinionated
