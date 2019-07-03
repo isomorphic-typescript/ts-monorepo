@@ -5,16 +5,22 @@ export interface PackageJSON {
 }
 
 export interface TSConfigJSON {
-
+    compilerOptions?: {
+        outDir?: string;
+    }
 }
 
 export interface ProjectDescriptor {
+    publishDistributionFolder: boolean;
     configs: {
         "package.json": PackageJSON;
         "tsconfig.json": TSConfigJSON;
     }
 }
 
+/**
+ * @alias testing
+ */
 export default interface TSMonorepoConfig {
     version: string;
     packageRoot: string;

@@ -1,20 +1,22 @@
 {
   "name": "@isomorphic-typescript/ts-monorepo",
-  "version": "0.0.17",
+  "version": "0.1.0",
   "description": "Tool for maintaining and initializing typescript monorepos",
   "bin": {
     "ts-monorepo": "./distribution/ts-monorepo.js"
   },
   "scripts": {
-    "build:watch": "tsc -b --watch --verbose",
-    "build:normal": "npm install && tsc -b --verbose",
-    "patch": "git add . && npm version patch -fm",
-    "minor": "git add . && npm version minor -fm",
-    "major": "git add . && npm version major -fm",
+    "build:pre": "npm install && npm run generate:validator",
+    "build:watch": "npm run build:pre && tsc -b --watch --verbose",
+    "build:normal": "npm run build:pre && tsc -b --verbose",
+    "patch": "npm run build:normal && git add . && npm version patch -fm",
+    "minor": "npm run build:normal && git add . && npm version minor -fm",
+    "major": "npm run build:normal && git add . && npm version major -fm",
     "postpatch": "npm run pub",
     "postminor": "npm run pub",
     "postmajor": "npm run pub",
-    "pub": "npm run build:normal && git push origin master && npm publish"
+    "pub": "git push origin master && npm publish",
+    "generate:validator": "typescript-json-validator source/config-file-structural-checking/config.ts TSMonorepoConfig"
   },
   "author": "Alexander Leung",
   "license": "MIT",

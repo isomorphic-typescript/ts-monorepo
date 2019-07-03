@@ -29,5 +29,5 @@ export async function syncTSConfigJSON(packageName: string, relativePackageName:
     const relativeTSConfigJSONPath = relativePackageName + "/" + tsconfig;
     const absoluteTSConfigJSONPath = path.resolve(absolutePackagePath, tsconfig);
 
-    await syncGenericJSON(absoluteTSConfigJSONPath, relativeTSConfigJSONPath, resultingTSConfigJSONObj);
+    return await syncGenericJSON(absoluteTSConfigJSONPath, relativeTSConfigJSONPath, resultingTSConfigJSONObj);
 }

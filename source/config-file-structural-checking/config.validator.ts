@@ -58,16 +58,32 @@ export const TSMonorepoConfigSchema = {
             "tsconfig.json"
           ],
           "type": "object"
+        },
+        "publishDistributionFolder": {
+          "type": "boolean"
         }
       },
       "required": [
-        "configs"
+        "configs",
+        "publishDistributionFolder"
       ],
       "type": "object"
     },
     "TSConfigJSON": {
       "defaultProperties": [
       ],
+      "properties": {
+        "compilerOptions": {
+          "defaultProperties": [
+          ],
+          "properties": {
+            "outDir": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
       "type": "object"
     }
   },

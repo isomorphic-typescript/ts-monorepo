@@ -46,5 +46,5 @@ export async function syncPackageJSON(packageName: string, relativePackageName: 
     const relativePackageJSONPath = relativePackageName + "/" + "package.json";
     const absolutePackageJSONPath = path.resolve(absolutePackagePath, "package.json");
 
-    await syncGenericJSON(absolutePackageJSONPath, relativePackageJSONPath, resultingPackageJSONObj);
+    return await syncGenericJSON(absolutePackageJSONPath, relativePackageJSONPath, resultingPackageJSONObj);
 }

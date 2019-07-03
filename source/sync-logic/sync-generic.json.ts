@@ -6,7 +6,7 @@ import { validateFilePresence } from '../util/validate-presence-in-file-system';
 
 import { deepComparison } from './deep-object-compare';
 
-export async function syncGenericJSON(absolutePath: string, pathDisplayName: string, outputObject: any) {
+export async function syncGenericJSON<T>(absolutePath: string, pathDisplayName: string, outputObject: T) {
     const outputJSONString = JSON.stringify(outputObject, null, 2);
 
     const outputFilePresence = await validateFilePresence(
@@ -39,4 +39,8 @@ export async function syncGenericJSON(absolutePath: string, pathDisplayName: str
         }
         await fsAsync.writeFile(absolutePath, outputJSONString);
     }
+    return {
+        obj: outputObject,
+        text: outputJSONString
+    };
 }

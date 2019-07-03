@@ -68,4 +68,8 @@ export class PackageDependencyTracker {
         if (!dependencyTacker) throw new Error(`No package registered with name '${packageName}'`);
         return new Set(dependencyTacker.dependsOn); // clone the set so as to not expose internal state.
     }
+
+    public static reset() {
+        this.PACKAGE_REGISTRY = new Map();
+    }
 }

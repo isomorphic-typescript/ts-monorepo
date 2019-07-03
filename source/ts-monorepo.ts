@@ -32,14 +32,11 @@ async function main() {
         currentAction = currentAction.then(() => {
             if (tsBuild.isRunning()) tsBuild.stop();
             if (message) log.info(message);
-            return syncPackages(configFileRelativePath, configAbsolutePath)
-                .catch((e) => {
-                    log.error(e.message);
-                    console.log(e);
-                })
-                .finally(() => {
+            return syncPackages(configFileRelativePath, configAbsolutePath, tsBuild)
+                .catch((e: Error) => {
+                    log.error(`of type ${ansicolor.white(e.name)}`);
+                    console.log(e.stack || e.message);
                     acknowledgeWatingForChanges();
-                    tsBuild.start();
                 });
         });
     }
