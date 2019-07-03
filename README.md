@@ -121,6 +121,16 @@ in which case they will live as a direct child of a folder which has the name of
 1. The project forces single versioning across all packages in the monorepo.
 1. Certain tsconfig compilerOptions will be enabled without your choice. They are: "composite", "declaration", "declarationMap", "sourceMap". The reasoning behind this can be seen [here](https://github.com/RyanCavanaugh/learn-a#tsconfigsettingsjson). 
 
+## Migrating from Lerna
+
+First it should be noted that this package composes Lerna, so you are still using Lerna, just not directly for all use-cases. This may change in the future.
+
+You still use lerna commands `lerna publish` and `lerna run` explicitly, as well as `lerna bootstrap --hoist` if you like to do that.
+
+This tool does call `lerna bootstrap` internally, to set up all the linking before it begins a typescript build watch process.
+
+Instead of calling `lerna bump`, you must now update the version field explicitly in the `ts-monorepo.json` file, which will be propagated to all the package.jsons. This is especially necessary when the `publishDistributionFolder` config is set to true for any package.
+
 ## Nice benefits
 
 1. Now all of your configs are generated from this one `ts-monorepo.json` file, and so the tsconfig.json and package.json files can go into `.gitignore` since they are now all managed/generated automatically as part of the build, watch process.
@@ -130,7 +140,6 @@ in which case they will live as a direct child of a folder which has the name of
     1. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
     1. When specifying relative paths in the ts-monorepo.json baseConfig, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig, whereas when doing this with tsconfig's own `extends` field, the relative paths would be relative to the path of the inherited base tsconfig file rather than the project's tsconfig file, which is undesireable in most circumstances I have encountered.
 1. [Unlike Lerna](https://github.com/lerna/lerna/issues/1282#issuecomment-387918197), you can link and publish packages from the distribution directory rather than the package root directory. To enable this, set the `publishDistributionFolder` attribute to true in a particular package config. Note that for this option to work, you must also ensure that the generated tsconfig.json contains a `compilerOptions`.`outDir` value.
-1. Since this package technically composes lerna, you still use lerna commands `lerna publish` and `lerna run` explicitly, as well as `lerna bootstrap --hoist` if you like to do that. This tool does call `lerna bootstrap` internally, to set up all the linking before it begins a typescript build watch process.
 
 ## Any Examples?
 
