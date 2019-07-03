@@ -16,8 +16,6 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
     "version": "0.1.2",
     "baseConfigs": {
         "package.json": {
-            "files": ["distribution"],
-            "main": "./distribution/package.js",
             "author": "Alexander Leung",
             "license": "MIT"
         },
@@ -25,20 +23,24 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
             "compilerOptions": {
                 "module": "commonjs",
                 "target": "es6",
-                "lib": ["esnext"]
+                "lib": ["esnext"],
+                "rootDir": "./source",
+                "outDir": "./distribution"
             }
         }
     },
     "packages": {
         "project1": {
+            "publishDistributionFolder": false,
             "configs": {
                 "package.json": {
+                    "files": ["distribution"],
+                    "main": "./distribution/package.js",
                     "description": "some package for node",
                     "scripts": {
                         "custom": "project2-command input"
                     },
                     "dependencies": [
-                        "project3",
                         "@types/node"
                     ],
                     "devDependencies": [
@@ -51,6 +53,7 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
             }
         },
         "@somescope/project2": {
+            "publishDistributionFolder": true,
             "configs": {
                 "package.json": {
                     "description": "some command line tool for node",
@@ -126,6 +129,8 @@ in which case they will live as a direct child of a folder which has the name of
     1. All items are inherited, not just `compilerOptions`
     1. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
     1. When specifying relative paths in the ts-monorepo.json baseConfig, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig, whereas when doing this with tsconfig's own `extends` field, the relative paths would be relative to the path of the inherited base tsconfig file rather than the project's tsconfig file, which is undesireable in most circumstances I have encountered.
+1. [Unlike Lerna](https://github.com/lerna/lerna/issues/1282#issuecomment-387918197), you can link and publish packages from the distribution directory rather than the package root directory. To enable this, set the `publishDistributionFolder` attribute to true in a particular package config. Note that for this option to work, you must also ensure that the generated tsconfig.json contains a `compilerOptions`.`outDir` value.
+1. Since this package technically composes lerna, you still use lerna commands `lerna publish` and `lerna run` explicitly, as well as `lerna bootstrap --hoist` if you like to do that. This tool does call `lerna bootstrap` internally, to set up all the linking before it begins a typescript build watch process.
 
 ## Any Examples?
 
@@ -142,9 +147,8 @@ I created this project to manage [skoville/webpack-hot-module-replacement](https
 1. create VSCode extension which understands this config file, showing errors, auto suggesting values, and click to go to npm or other package support.
 1. Create a demo gif for the README.
 1. Allow comments in config file.
-1. Support npm publishing of the entire distribution folder which lerna does not currently support (since [the author of Lerna mistakenly considers this approach to be a "ridiculous pattern"](https://github.com/lerna/lerna/issues/1282#issuecomment-387918197) despite it actually being quite a common need). It would actually be pretty trivial to support this. Just have lerna.json refence each package explicitly then have it point to the dist folder and copy the package.json into said dist folder. Piece of cake.
 1. Improve quality of error messages
 1. Specify protocol for package configs to remove certain entries from inherited baseConfig.
-1. Ideally make lerna irrelevant here, taking over npm publishing capabilities.
+1. Ideally decouple project from lerna irrelevant here. Plus side is more control and faster install time. Downside is needing to take over npm publishing capabilities, run in each package capabilities, hoisting, and all this will probably mean the need to add command line arguments to the tool.
 1. Support independent versioning? Not sure if this is a good feature or not.
 1. Make the sync protocol more generic so as to support any arbitrary config.
