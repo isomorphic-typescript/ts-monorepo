@@ -10,8 +10,7 @@ export async function syncGenericJSON<T>(absolutePath: string, pathDisplayName: 
     const outputJSONString = JSON.stringify(outputObject, null, 2);
 
     const outputFilePresence = await validateFilePresence(
-        absolutePath, 
-        false, false, 
+        absolutePath,
         outputJSONString, 
         pathDisplayName);
 

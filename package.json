@@ -1,6 +1,6 @@
 {
   "name": "@isomorphic-typescript/ts-monorepo",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Tool for maintaining and initializing typescript monorepos",
   "bin": {
     "ts-monorepo": "./distribution/ts-monorepo.js"

@@ -7,37 +7,41 @@ import { log } from './util/log';
 import { restartProgram } from './util/restart-program';
 import { validateFilePresence } from './util/validate-presence-in-file-system';
 import { syncPackages } from './sync-logic/sync-packages';
-import { TSBuild } from './ts-build';
+import { CommandRunner } from './util/command-runner';
 
 async function main() {
     console.log("");
+    log.info(`PID = ${process.pid}`);
 
+    const TS_BUILD_COMMAND = "npx tsc -b --watch --preserveWatchOutput ./tsconfig-leaves.json";
     const configFileRelativePath = "ts-monorepo.json";
     const configAbsolutePath = path.resolve(configFileRelativePath);
-    const tsBuild = new TSBuild();
+    var tsBuild = new CommandRunner(TS_BUILD_COMMAND);
 
     function acknowledgeWatingForChanges() {
         log.info(ansicolor.green("Waiting for changes..."));
     }
     
     const initialConfigFilePresence = await validateFilePresence(
-        configAbsolutePath, 
-        false, false, 
+        configAbsolutePath,
         undefined, 
         configFileRelativePath);
     if (!initialConfigFilePresence.exists || initialConfigFilePresence.wrong) acknowledgeWatingForChanges();
 
     var currentAction = Promise.resolve();
     function runUpdate(message?: string) {
-        currentAction = currentAction.then(() => {
-            if (tsBuild.isRunning()) tsBuild.stop();
+        currentAction = currentAction.then(async () => {
+            if (tsBuild.isRunning()) await tsBuild.kill();
             if (message) log.info(message);
-            return syncPackages(configFileRelativePath, configAbsolutePath, tsBuild)
-                .catch((e: Error) => {
-                    log.error(`of type ${ansicolor.white(e.name)}`);
-                    console.log(e.stack || e.message);
-                    acknowledgeWatingForChanges();
-                });
+            try {
+                await syncPackages(configFileRelativePath, configAbsolutePath);
+                tsBuild = new CommandRunner(TS_BUILD_COMMAND);
+                await tsBuild.start();
+            } catch(e) {
+                log.error(`of type ${ansicolor.white(e.name)}`);
+                console.log(e.stack || e.message);
+                acknowledgeWatingForChanges();
+            }
         });
     }
 
@@ -62,16 +66,16 @@ async function main() {
         .on("unlink", _path => {
             log.warn("The config file has been removed.. Please add it again to resume watching.");
         })
-        .on("error", error => {
-            if (tsBuild.isRunning()) tsBuild.stop();
+        .on("error", async error => {
+            if (tsBuild.isRunning()) await tsBuild.kill();
             restartProgram(() => {
                 log.error("Chokidar Error '" + error.name + "': " + error.message + (error.stack ? "\n" + ansicolor.default(error.stack) : ""));
             });
         });
 
     chokidar.watch(__dirname)
-        .on("change", () => {
-            if (tsBuild.isRunning()) tsBuild.stop();
+        .on("change", async () => {
+            if (tsBuild.isRunning()) await tsBuild.kill();
             restartProgram(() => {
                 log.info("Detected change in program itself.");
             });
@@ -79,17 +83,3 @@ async function main() {
 }
 
 main();
-
-// Have to do this because I use goddamn MinTTy w/ Msys2. https://github.com/nodejs/node/issues/16103
-// From https://thisdavej.com/making-interactive-node-js-console-apps-that-listen-for-keypress-events/
-/*
-const readline = require('readline');
-readline.emitKeypressEvents(process.stdin);
-//(process.stdin as any).setRawMode(true);
-process.stdin.on('keypress', (_str, key) => {
-    if(key.name === 'q') {
-        console.log("quitting");
-        process.exit();
-    }
-});
-*/

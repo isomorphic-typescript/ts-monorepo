@@ -13,7 +13,7 @@ export interface ValidationResult {
     wrong: boolean;
 }
 
-async function validateFilesystemObject(absolutePath: string, throwErrorIfMissing: boolean, throwErrorIfWrong: boolean, fileSystemObjectType: FileSystemObjectType, presentationName?: string): Promise<ValidationResult> {
+async function validateFilesystemObject(absolutePath: string, fileSystemObjectType: FileSystemObjectType, presentationName?: string): Promise<ValidationResult> {
     const displayText = presentationName || absolutePath;
     const coloredDisplayText = fileSystemObjectType === FileSystemObjectType.Directory ?
         ansicolor.cyan(displayText) : ansicolor.green(displayText);
@@ -23,11 +23,7 @@ async function validateFilesystemObject(absolutePath: string, throwErrorIfMissin
         const stats = await fsAsync.statistics(absolutePath);
         if(!stats.isFile() && !stats.isDirectory()) {
             const errrorMessage = `Expected ${fileSystemObjectType} '${coloredDisplayText}', but instead found object that is neigher a file nor directory.`;
-            if (throwErrorIfWrong) {
-                throw new Error(errrorMessage);
-            } else {
-                log.error(errrorMessage);
-            }
+            log.error(errrorMessage);
             return {
                 exists: true,
                 wrong: true
@@ -36,11 +32,7 @@ async function validateFilesystemObject(absolutePath: string, throwErrorIfMissin
         const isCorrectType = fileSystemObjectType === FileSystemObjectType.Directory ? stats.isDirectory() : stats.isFile();
         if(!isCorrectType) {
             const errorMessage = `Expected ${fileSystemObjectType} '${coloredDisplayText}', but instead found ${oppositeFileSystemObjectType}.`;
-            if (throwErrorIfWrong) {
-                throw new Error(errorMessage);
-            } else {
-                log.error(errorMessage);
-            }
+            log.error(errorMessage);
             return {
                 exists: true,
                 wrong: true
@@ -52,11 +44,9 @@ async function validateFilesystemObject(absolutePath: string, throwErrorIfMissin
         };
     } else {
         const errorMessage = `No such ${fileSystemObjectType} '${coloredDisplayText}' exists`;
-        if (throwErrorIfMissing) {
-            throw new Error(errorMessage);
-        } else {
-            log.error(errorMessage);
-        }
+        // unlink just in case there is a broken symlink here.
+        await fsAsync.deleteFile(absolutePath);
+        log.error(errorMessage);
         return {
             exists: false,
             wrong: true
@@ -64,8 +54,8 @@ async function validateFilesystemObject(absolutePath: string, throwErrorIfMissin
     }
 }
 
-export async function validateFilePresence(absolutePath: string, throwIfMissing: boolean, throwIfWrong: boolean, createWithContentIfNotCorrect?: string, presentationName?: string): Promise<ValidationResult> {
-    const validationResult = await validateFilesystemObject(absolutePath, throwIfMissing, throwIfWrong, FileSystemObjectType.File, presentationName);
+export async function validateFilePresence(absolutePath: string, createWithContentIfNotCorrect?: string, presentationName?: string): Promise<ValidationResult> {
+    const validationResult = await validateFilesystemObject(absolutePath, FileSystemObjectType.File, presentationName);
     const correct = !validationResult.wrong && validationResult.exists;
     if (createWithContentIfNotCorrect !== undefined && !correct) {
         if (validationResult.wrong && validationResult.exists) {
@@ -79,8 +69,8 @@ export async function validateFilePresence(absolutePath: string, throwIfMissing:
 
 }
 
-export async function validateDirectoryPresence(absolutePath: string, throwIfMissing: boolean, throwIfWrong: boolean, createIfNotCorrect: boolean, presentationName?: string): Promise<ValidationResult> {
-    const validationResult = await validateFilesystemObject(absolutePath, throwIfMissing, throwIfWrong, FileSystemObjectType.Directory, presentationName);
+export async function validateDirectoryPresence(absolutePath: string, createIfNotCorrect: boolean, presentationName?: string): Promise<ValidationResult> {
+    const validationResult = await validateFilesystemObject(absolutePath, FileSystemObjectType.Directory, presentationName);
     const correct = !validationResult.wrong && validationResult.exists;
     if (createIfNotCorrect && !correct) {
         if (validationResult.wrong && validationResult.exists) {
@@ -91,4 +81,38 @@ export async function validateDirectoryPresence(absolutePath: string, throwIfMis
         log.info(`Created directory '${ansicolor.cyan(presentationName || absolutePath)}'.`);
     }
     return validationResult;
+}
+
+export async function validateSymlinkPresence(absoluteSourcePath: string, absoluteDestinationPath: string, file: boolean, presentationNameSource: string, presentationNameDestination: string) {
+    const exists = await fsAsync.exists(absoluteSourcePath);
+    if (!exists) {
+        throw new Error(`When trying to create symlink '${ansicolor.blue(presentationNameSource)}', found that the intended destination '${
+            file ? "file " + ansicolor.green(presentationNameDestination) : "directory " + ansicolor.cyan(presentationNameDestination)
+        }' does not exist.`);
+    }
+
+    const destinationStatistics = await fsAsync.statistics(absoluteDestinationPath);
+    if (destinationStatistics.isFile() !== file) {
+        throw new Error(`When trying to create symlink '${ansicolor.blue(presentationNameSource)}', found that the intended destination '${
+            file ? "file " + ansicolor.green(presentationNameDestination) + " is actually a directory"
+            :
+            "directory " + ansicolor.cyan(presentationNameDestination) + " is actually a file"
+        }'`);
+    }
+
+    const actualDestination = await fsAsync.linkTarget(absoluteSourcePath);
+    if (actualDestination !== absoluteDestinationPath) {
+        log.info(`Creating symlink from ${ansicolor.blue(presentationNameSource)} to ${file ? ansicolor.green(presentationNameDestination) : ansicolor.cyan(presentationNameDestination)}`);
+        if (actualDestination === absoluteSourcePath) {
+            const sourceStatistics = await fsAsync.statistics(absoluteSourcePath);
+            const isFile = sourceStatistics.isFile();
+            log.info(`There is already a ${isFile ? "file" : "directory"} at the site of desired simlink. Removing it...`);
+            if (sourceStatistics.isFile()) {
+                await fsAsync.deleteFile(absoluteSourcePath);
+            } else {
+                await recursivelyDeleteDirectoryAsync(absoluteSourcePath);
+            }
+        }
+        await fsAsync.createSymlink(absoluteDestinationPath, absoluteSourcePath, file ? "file" : "dir");
+    }
 }

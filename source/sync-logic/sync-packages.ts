@@ -1,14 +1,10 @@
 import * as ansicolor from 'ansicolor';
 import * as path from 'path';
-import * as child_process from 'child_process';
-import * as util from 'util';
-
-const execAsync = util.promisify(child_process.exec);
 
 // Utils
 import { fsAsync } from '../util/fs-async';
 import { log } from '../util/log';
-import { validateFilePresence, validateDirectoryPresence } from '../util/validate-presence-in-file-system';
+import { validateFilePresence, validateDirectoryPresence, validateSymlinkPresence } from '../util/validate-presence-in-file-system';
 
 // Config File Validation
 import validateConfigFile, { TSMonorepoConfig } from '../config-file-structural-checking/config.validator';
@@ -18,14 +14,13 @@ import { syncPackageJSON } from './sync-package.json';
 import { syncTSConfigJSON } from './sync-tsconfig.json';
 import { syncLernaJSON } from './sync-lerna.json';
 import { syncTSConfigLeavesJSON } from './sync-tsconfig-leaves.json';
-import { TSBuild } from '../ts-build';
+import { CommandRunner } from '../util/command-runner';
 
-export async function syncPackages(configFileRelativePath: string, configAbsolutePath: string, tsBuild: TSBuild) {
+export async function syncPackages(configFileRelativePath: string, configAbsolutePath: string) {
     PackageDependencyTracker.reset();
 
     const configFilePresence = await validateFilePresence(
         configAbsolutePath, 
-        false, false,
         undefined,
         configFileRelativePath);
     if (!configFilePresence.exists || configFilePresence.wrong) return;
@@ -84,7 +79,7 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
     }
     const packageRootAbsolutePath = path.resolve(".", packageRoot);
 
-    await validateDirectoryPresence(packageRootAbsolutePath, false, false, true, packageRoot);
+    await validateDirectoryPresence(packageRootAbsolutePath, true, packageRoot);
 
     const packageList = Object.keys(configFileJSON.packages);
     if (packageList.length === 0) {
@@ -128,9 +123,9 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
         if (nameIsScoped) { // Means we have @scope-name/package-name pattern
             const scopedFolder = packageRoot + "/" + nameParts[0];
             const scopedFolderAbsolutePath = path.resolve("./" + scopedFolder);
-            await validateDirectoryPresence(scopedFolderAbsolutePath, false, false, true, scopedFolder);
+            await validateDirectoryPresence(scopedFolderAbsolutePath, true, scopedFolder);
         }
-        await validateDirectoryPresence(packageDirectoryAbsolutePath, false, false, true, relativePackagePath);
+        await validateDirectoryPresence(packageDirectoryAbsolutePath, true, relativePackagePath);
         const packageJSONSyncResult =
             await syncPackageJSON(packageName, relativePackagePath, packageDirectoryAbsolutePath, configFileJSON);
         const tsConfigSyncResult =
@@ -144,9 +139,16 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
                 log.info(`${ansicolor.white("publishDistributionFolder")} enabled for package ${ansicolor.magenta(packageName)}.${
                     "\n          "
                 }Copying ${ansicolor.green("package.json")} to ${ansicolor.cyan(packagePublishingRelativeDirectory)}.`);
-                await validateDirectoryPresence(packagePublishingAbsoluteDirectory, false, false, true, packagePublishingRelativeDirectory);
+                await validateDirectoryPresence(packagePublishingAbsoluteDirectory, true, packagePublishingRelativeDirectory);
                 await fsAsync.writeFile(path.resolve(packagePublishingAbsoluteDirectory, "package.json"), packageJSONSyncResult.text);
                 lernaJSONPackagePaths.add(packagePublishingRelativeDirectory);
+
+                const nodeModules = "node_modules";
+                
+                const distributionNodeModulesAbsolutePath = path.resolve(packagePublishingAbsoluteDirectory, nodeModules);
+                await validateDirectoryPresence(distributionNodeModulesAbsolutePath, true, relativePackagePath + "/" + nodeModules);
+                const packageNodeModulesAbsolutePath = path.resolve(packageDirectoryAbsolutePath, nodeModules);
+                await validateSymlinkPresence(packageNodeModulesAbsolutePath, distributionNodeModulesAbsolutePath, false, relativePackagePath + "/" + nodeModules, packagePublishingRelativeDirectory + "/" + nodeModules);
             } else {
                 log.error(`Package ${ansicolor.magenta(packageName)} has ${ansicolor.lightGray(`"${ansicolor.white("publishDistributionFolder")}"`)} enabled, but ts-monorepo requires${
                     "\n          "
@@ -163,26 +165,10 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
     // Lerna
     await syncLernaJSON(lernaJSONPackagePaths, configFileJSON);
     const lernaInstallAndLinkCommand = "npx lerna bootstrap"; // TODO: add hoist?
-    log.info(`Running '${ansicolor.white(lernaInstallAndLinkCommand.split(" ").slice(1).join(" "))}'`);
-    const {stdout, stderr} = await execAsync(lernaInstallAndLinkCommand);
-
-    if(stdout) {
-        stdout.split("\n")
-            .filter(line => line.length > 0)
-            .forEach(line => {
-                log.info(line);
-            });
-    }
-    if(stderr) {
-        stderr.split("\n")
-            .filter(line => line.length > 0)
-            .forEach(line => {
-                log.info(line);
-            });
-    }
+    const lernaBoostrap = new CommandRunner(lernaInstallAndLinkCommand);
+    lernaBoostrap.start();
+    await lernaBoostrap.waitUntilDone();
 
     // tsc
     await syncTSConfigLeavesJSON(leafPackages, configFileJSON);
-
-    tsBuild.start();
 }
