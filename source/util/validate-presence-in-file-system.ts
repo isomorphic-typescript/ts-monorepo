@@ -100,19 +100,7 @@ export async function validateSymlinkPresence(absoluteSourcePath: string, absolu
         }`);
     }
 
-    const actualDestination = await fsAsync.linkTarget(absoluteSourcePath);
-    if (actualDestination !== absoluteDestinationPath) {
-        log.info(`Creating symlink from ${ansicolor.blue(presentationNameSource)} to ${file ? ansicolor.green(presentationNameDestination) : ansicolor.cyan(presentationNameDestination)}`);
-        if (actualDestination === absoluteSourcePath) {
-            const sourceStatistics = await fsAsync.statistics(absoluteSourcePath);
-            const isFile = sourceStatistics.isFile();
-            log.info(`There is already a ${isFile ? "file" : "directory"} at the site of desired simlink. Removing it...`);
-            if (sourceStatistics.isFile()) {
-                await fsAsync.deleteFile(absoluteSourcePath);
-            } else {
-                await comprehensiveDelete(absoluteSourcePath);
-            }
-        }
-        await fsAsync.createSymlink(absoluteDestinationPath, absoluteSourcePath, file ? "file" : "dir");
-    }
+    await comprehensiveDelete(absoluteSourcePath);
+    log.info(`Symlinking ${ansicolor.blue(presentationNameSource)} to ${file ? ansicolor.green(presentationNameDestination) : ansicolor.cyan(presentationNameDestination)}`);
+    await fsAsync.createSymlink(absoluteDestinationPath, absoluteSourcePath, file ? "file" : "dir");
 }

@@ -144,7 +144,6 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
                 lernaJSONPackagePaths.add(packagePublishingRelativeDirectory);
 
                 const nodeModules = "node_modules";
-                
                 const distributionNodeModulesAbsolutePath = path.resolve(packagePublishingAbsoluteDirectory, nodeModules);
                 await validateDirectoryPresence(distributionNodeModulesAbsolutePath, true, relativePackagePath + "/" + nodeModules);
                 const packageNodeModulesAbsolutePath = path.resolve(packageDirectoryAbsolutePath, nodeModules);
