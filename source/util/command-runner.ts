@@ -43,46 +43,12 @@ export class CommandRunner {
         const [command, ...commandArgs] = this.command.split(" ");
         this.commandProcess = child_process.spawn(
             `${command}${CommandRunner.OS_IS_WINDOWS ? '.cmd' : ''}`,
-            commandArgs, CommandRunner.OS_IS_WINDOWS ? {} : {
-                stdio: 'inherit'
-            });
+            commandArgs, {stdio: 'inherit'});
         const spawnedProcess = this.commandProcess;
         this.commandProcess.on("error", err => {
             log.error("Received Error from process:");
             log.error(err.stack || err.message);
         });
-        if(this.commandProcess.stdout) {
-            const stdout = this.commandProcess.stdout;
-            const stdoutEmit: any = stdout.emit;
-            (stdout.emit as any) = function() {
-                console.log(`stdout event:`, arguments);
-                stdoutEmit.apply(stdout, arguments)
-            }
-            stdout.on("data", data => {
-                const text: string = data.toString();
-                text
-                    .split("\n")
-                    .forEach(line => {
-                        log.info(line);
-                    });
-            });
-        }
-        if(this.commandProcess.stderr) {
-            const stderr = this.commandProcess.stderr;
-            const stderrEmit: any = stderr.emit;
-            (stderr.emit as any) = function() {
-                console.log(`stderr event:`, arguments);
-                stderrEmit.apply(stderr, arguments)
-            }
-            stderr.on("data", data => {
-                const text: string = data.toString();
-                text
-                    .split("\n")
-                    .forEach(line => {
-                        log.error(ansicolor.default(line));
-                    });
-            });
-        }
         this.startPromiseResolver();
         this.finishedPromise = new Promise(resolve => {
             spawnedProcess.on("exit", (code, signal) => {

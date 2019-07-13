@@ -1,7 +1,7 @@
 import { fsAsync } from './fs-async';
 import ansicolor = require('ansicolor');
 import { log } from './log';
-import { recursivelyDeleteDirectoryAsync } from './recursive-delete-directory';
+import { comprehensiveDelete } from './recursive-delete-directory';
 
 export enum FileSystemObjectType {
     File = 'file',
@@ -45,7 +45,7 @@ async function validateFilesystemObject(absolutePath: string, fileSystemObjectTy
     } else {
         const errorMessage = `No such ${fileSystemObjectType} '${coloredDisplayText}' exists`;
         // unlink just in case there is a broken symlink here.
-        await fsAsync.deleteFile(absolutePath);
+        await comprehensiveDelete(absolutePath);
         log.error(errorMessage);
         return {
             exists: false,
@@ -60,7 +60,7 @@ export async function validateFilePresence(absolutePath: string, createWithConte
     if (createWithContentIfNotCorrect !== undefined && !correct) {
         if (validationResult.wrong && validationResult.exists) {
             log.warn(`Removing the directory to replace with file...`);
-            await recursivelyDeleteDirectoryAsync(absolutePath);
+            await comprehensiveDelete(absolutePath);
         }
         await fsAsync.writeFile(absolutePath, createWithContentIfNotCorrect);
         log.info(`Created file '${ansicolor.green(presentationName || absolutePath)}' with contents:\n${createWithContentIfNotCorrect}`);
@@ -84,10 +84,10 @@ export async function validateDirectoryPresence(absolutePath: string, createIfNo
 }
 
 export async function validateSymlinkPresence(absoluteSourcePath: string, absoluteDestinationPath: string, file: boolean, presentationNameSource: string, presentationNameDestination: string) {
-    const exists = await fsAsync.exists(absoluteSourcePath);
+    const exists = await fsAsync.exists(absoluteDestinationPath);
     if (!exists) {
-        throw new Error(`When trying to create symlink '${ansicolor.blue(presentationNameSource)}', found that the intended destination '${
-            file ? "file " + ansicolor.green(presentationNameDestination) : "directory " + ansicolor.cyan(presentationNameDestination)
+        throw new Error(`When trying to create symlink '${ansicolor.blue(presentationNameSource)}', found that the intended destination ${
+            file ? "file '" + ansicolor.green(presentationNameDestination) : "directory '" + ansicolor.cyan(presentationNameDestination)
         }' does not exist.`);
     }
 
@@ -97,7 +97,7 @@ export async function validateSymlinkPresence(absoluteSourcePath: string, absolu
             file ? "file " + ansicolor.green(presentationNameDestination) + " is actually a directory"
             :
             "directory " + ansicolor.cyan(presentationNameDestination) + " is actually a file"
-        }'`);
+        }`);
     }
 
     const actualDestination = await fsAsync.linkTarget(absoluteSourcePath);
@@ -110,7 +110,7 @@ export async function validateSymlinkPresence(absoluteSourcePath: string, absolu
             if (sourceStatistics.isFile()) {
                 await fsAsync.deleteFile(absoluteSourcePath);
             } else {
-                await recursivelyDeleteDirectoryAsync(absoluteSourcePath);
+                await comprehensiveDelete(absoluteSourcePath);
             }
         }
         await fsAsync.createSymlink(absoluteDestinationPath, absoluteSourcePath, file ? "file" : "dir");
