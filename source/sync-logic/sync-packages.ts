@@ -57,7 +57,9 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
                 .replace(/ should/g, "\n   " + ansicolor.red("error:") + " should")
                 + "\n";
         }
-        e.message = validationErrorFix(e.message);
+        if(!e.message.includes("in JSON at position")) {
+            e.message = validationErrorFix(e.message);
+        }
         e.stack = undefined;
         throw e;
     }
