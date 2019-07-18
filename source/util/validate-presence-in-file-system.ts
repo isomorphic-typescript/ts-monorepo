@@ -43,10 +43,8 @@ async function validateFilesystemObject(absolutePath: string, fileSystemObjectTy
             wrong: false
         };
     } else {
-        const errorMessage = `No such ${fileSystemObjectType} '${coloredDisplayText}' exists`;
         // unlink just in case there is a broken symlink here.
         await comprehensiveDelete(absolutePath);
-        log.error(errorMessage);
         return {
             exists: false,
             wrong: true
@@ -63,7 +61,7 @@ export async function validateFilePresence(absolutePath: string, createWithConte
             await comprehensiveDelete(absolutePath);
         }
         await fsAsync.writeFile(absolutePath, createWithContentIfNotCorrect);
-        log.info(`Created file '${ansicolor.green(presentationName || absolutePath)}' with contents:\n${createWithContentIfNotCorrect}`);
+        log.info(`Created file '${ansicolor.green(presentationName || absolutePath)}'`);
     }
     return validationResult;
 
@@ -101,6 +99,5 @@ export async function validateSymlinkPresence(absoluteSourcePath: string, absolu
     }
 
     await comprehensiveDelete(absoluteSourcePath);
-    log.info(`Symlinking ${ansicolor.blue(presentationNameSource)} to ${file ? ansicolor.green(presentationNameDestination) : ansicolor.cyan(presentationNameDestination)}`);
     await fsAsync.createSymlink(absoluteDestinationPath, absoluteSourcePath, file ? "file" : "dir");
 }

@@ -30,7 +30,7 @@ export async function syncGenericJSON<T>(absolutePath: string, pathDisplayName: 
         if (!parseFailed && currentObject !== undefined) {
             const differences = deepComparison(currentObject, outputObject, "");
             if (differences.length > 0) {
-                log.trace(ansicolor.green(pathDisplayName));
+                log.trace(`${ansicolor.lightGray("modifying")} ${ansicolor.green(pathDisplayName)}`);
             }
             differences.forEach(explanation => {
                 log.info(explanation);

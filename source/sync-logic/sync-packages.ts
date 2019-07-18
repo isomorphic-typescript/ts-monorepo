@@ -138,9 +138,8 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
                 const packagePublishingRelativeDirectory = path.join(relativePackagePath, outDir)
                     .replace(/\\/g, "/"); // deal with windows
                 const packagePublishingAbsoluteDirectory = path.resolve("./" + packagePublishingRelativeDirectory);
-                log.info(`${ansicolor.white("publishDistributionFolder")} enabled for package ${ansicolor.magenta(packageName)}.${
-                    "\n          "
-                }Copying ${ansicolor.green("package.json")} to ${ansicolor.cyan(packagePublishingRelativeDirectory)}.`);
+                log.info(`${ansicolor.white("publishDistributionFolder")} enabled for package ${ansicolor.magenta(packageName)}.`);
+                // Sync package.json to dist folder
                 await validateDirectoryPresence(packagePublishingAbsoluteDirectory, true, packagePublishingRelativeDirectory);
                 await fsAsync.writeFile(path.resolve(packagePublishingAbsoluteDirectory, "package.json"), packageJSONSyncResult.text);
                 lernaJSONPackagePaths.add(packagePublishingRelativeDirectory);
