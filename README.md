@@ -24,17 +24,27 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
     "baseConfigs": {
         "package.json": {
             "author": "Alexander Leung",
-            "license": "MIT"
+            "license": "MIT",
+            "devDependencies": [
+                "ts-nameof"
+            ]
         },
         "tsconfig.json": {
             "compilerOptions": {
-                // You can have comments anywhere in this file!
-                /* ...of both line and block style */
                 "module": "commonjs",
                 "target": "es6",
                 "lib": ["esnext"],
+                "types": ["ts-nameof"],
+                "strict": true,
                 "rootDir": "./source",
-                "outDir": "./distribution"
+                "outDir": "./distribution",
+                /* https://github.com/cevek/ttypescript */
+                "plugins": [
+                    {
+                        "transform": "ts-nameof",
+                        "type": "raw"
+                    }
+                ]
             }
         }
     },
