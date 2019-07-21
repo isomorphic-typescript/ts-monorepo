@@ -1,5 +1,6 @@
 import * as ansicolor from 'ansicolor';
 import * as path from 'path';
+import { parse } from 'comment-json';
 
 // Utils
 import { fsAsync } from '../util/fs-async';
@@ -16,6 +17,10 @@ import { syncLernaJSON } from './sync-lerna.json';
 import { syncTSConfigLeavesJSON } from './sync-tsconfig-leaves.json';
 import { CommandRunner } from '../util/command-runner';
 
+const CONFIGURATION_ERROR = new Error("See above error message(s)");
+CONFIGURATION_ERROR.stack = undefined;
+CONFIGURATION_ERROR.name = "ConfigurationError";
+
 export async function syncPackages(configFileRelativePath: string, configAbsolutePath: string) {
     PackageDependencyTracker.reset();
 
@@ -23,26 +28,49 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
         configAbsolutePath, 
         undefined,
         configFileRelativePath);
-    if (!configFilePresence.exists || configFilePresence.wrong) return;
+    if (!configFilePresence.exists) {
+        const fileDoesntExists = new Error(`The config file ${ansicolor.green(configFileRelativePath)} could not be found`);
+        fileDoesntExists.name = "Config file not found";
+        throw fileDoesntExists;
+    } else if (configFilePresence.wrong) {
+        throw CONFIGURATION_ERROR;
+    }
 
     // Read config file.
     const configFileContents = (await fsAsync.readFile(configAbsolutePath)).toString();
     
-    // TODO: Strip the json file contents of comments before attempting to parse it.
+    // TODO: pass comments down to generated jsons.
 
     // parse as json
+    var parsedJson: any;
+    try {
+        parsedJson = parse(configFileContents, undefined, true);
+    } catch(e) {
+        if (e.name === "SyntaxError") {
+            e.message = `\n ${ansicolor.magenta('subject:')} ${ansicolor.green("ts-monorepo.json")}${
+                "\n"
+            }   ${ansicolor.red("error")}: ${e.message} on line ${ansicolor.green(e.line)}, column ${ansicolor.green(""+(e.column+1))}\n`;
+            e.stack = undefined;
+        }
+        e.name = "ts-monorepo.json parse error from library " + ansicolor.cyan("comment-json");
+        throw e;
+    }
+
+    // validate the json
     var configFileJSON: TSMonorepoConfig | undefined;
     try {
-        configFileJSON = validateConfigFile(JSON.parse(configFileContents));
+        configFileJSON = validateConfigFile(parsedJson);
     } catch(e) {
+        const error: Error = e;
         const tempCharStart = "→";
-        e.name = "invalid ts-monorepo.json";
+        error.name = "invalid ts-monorepo.json";
         function validationErrorFix(input: string) {
             const lines = (input
-                .replace(new RegExp(`${e.name}: `, "g"), "") // remove error name from beginning of message
-                .replace(/TSMonorepoConfig\./g, "\n" + tempCharStart) // replace the type name of the validating TS interface with a temp char start
+                .replace(new RegExp(`${error.name}: `, "g"), "") // remove error name from beginning of message
+                .replace(/TSMonorepoConfig/g, "\n" + tempCharStart + ansicolor.green("ts-monorepo.json")) // replace the type name of the validating TS interface with a temp char start
                 .trimStart())
                 .split("\n");
+            //console.log(lines);
             var i = 0;
             for(const line of lines) {
                 if (!line.startsWith(tempCharStart)) {
@@ -53,31 +81,33 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
             return "\n" + lines.slice(0, i)
                 .join("\n")
                 .replace(/, \n/g, "\n\n") 
-                .replace(new RegExp(tempCharStart, 'g'), "   " + ansicolor.magenta("field: "))
+                .replace(new RegExp(tempCharStart, 'g'), " " + ansicolor.magenta("subject: "))
                 .replace(/ should/g, "\n   " + ansicolor.red("error:") + " should")
                 + "\n";
         }
-        if(!e.message.includes("in JSON at position")) {
-            e.message = validationErrorFix(e.message);
-        }
-        e.stack = undefined;
-        throw e;
+        error.message = validationErrorFix(error.message);
+        error.stack = undefined;
+        throw error;
     }
-    if (configFileJSON === undefined) return;
+    if (configFileJSON === undefined) {
+        const configFileUndefinedError = new Error(`After parsing, the config file ${ansicolor.green(configFileRelativePath)} is undefined`);
+        configFileUndefinedError.name = "Config file undefined";
+        throw configFileUndefinedError;
+    };
 
     // Validate the package root.
     const packageRoot = configFileJSON.packageRoot;
     if (packageRoot.length === 0) {
         log.error("The 'packageRoot' field may not be empty.");
-        return;
+        throw CONFIGURATION_ERROR;
     }
     if (packageRoot.includes("/") || packageRoot.includes("\\")) {
         log.error(`The value of the 'packageRoot' field '${ansicolor.white(packageRoot)}' currently contains at least one of the forbidden characters '/' or '\\'.`);
-        return;
+        throw CONFIGURATION_ERROR;
     }
     if (packageRoot === "." || packageRoot === "..") {
         log.error(`The value of the 'packageRoot' field '${ansicolor.white(packageRoot)}' is illegal.`);
-        return;
+        throw CONFIGURATION_ERROR;
     }
     const packageRootAbsolutePath = path.resolve(".", packageRoot);
 
@@ -86,7 +116,7 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
     const packageList = Object.keys(configFileJSON.packages);
     if (packageList.length === 0) {
         log.error("Config file must have at least one package");
-        return;
+        throw CONFIGURATION_ERROR;
     }
 
     // Validate each package name
@@ -98,7 +128,7 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
             foundIssueWithAtLeastOnePackageName = true;
         }
     }
-    if (foundIssueWithAtLeastOnePackageName) return;
+    if (foundIssueWithAtLeastOnePackageName) throw CONFIGURATION_ERROR;
 
     packageList.forEach(packageName => {
         PackageDependencyTracker.registerPackage(packageName, configFileJSON as TSMonorepoConfig);
@@ -132,6 +162,16 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
             await syncPackageJSON(packageName, relativePackagePath, packageDirectoryAbsolutePath, configFileJSON);
         const tsConfigSyncResult =
             await syncTSConfigJSON(packageName, relativePackagePath, nameIsScoped, packageDirectoryAbsolutePath, configFileJSON);
+
+        if (configFileJSON.cleanBeforeCompile) {
+            // Removing the tsconfig.tsbuildinfo file in each package will force typescript to recompile everything.
+            const buildInfoFilePath = path.join(packageDirectoryAbsolutePath, "tsconfig.tsbuildinfo");
+            const buildInfoFileExists = await fsAsync.exists(buildInfoFilePath);
+            if (buildInfoFileExists) {
+                await fsAsync.deleteFile(buildInfoFilePath);
+            }
+        }
+
         if(configFileJSON.packages[packageName].publishDistributionFolder === true) {
             if (tsConfigSyncResult.obj.compilerOptions && tsConfigSyncResult.obj.compilerOptions.outDir !== undefined) {
                 const outDir = tsConfigSyncResult.obj.compilerOptions.outDir;
@@ -160,15 +200,30 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
         }
     }
     
-    if(anyErrorsPreventingBuild) return;
+    if(anyErrorsPreventingBuild) {
+        const preBuildError = new Error("See above messages for details.");
+        preBuildError.name = "pre-build error";
+        throw preBuildError;
+    }
 
     // Lerna
     await syncLernaJSON(lernaJSONPackagePaths, configFileJSON);
-    const lernaInstallAndLinkCommand = "npx lerna bootstrap"; // TODO: add hoist?
+
+    if(configFileJSON.cleanBeforeCompile) {
+        // This will remove all the node_modules folders of each package.
+        const lernaCleanCommand = "npx lerna clean --yes";
+        const lernaClean = new CommandRunner(lernaCleanCommand);
+        lernaClean.start();
+        await lernaClean.waitUntilDone();
+    }
+
+    const lernaInstallAndLinkCommand = "npx lerna bootstrap"; // TODO: add hoisting?
     const lernaBoostrap = new CommandRunner(lernaInstallAndLinkCommand);
     lernaBoostrap.start();
     await lernaBoostrap.waitUntilDone();
 
-    // tsc
+    // tsc (or ttsc)
     await syncTSConfigLeavesJSON(leafPackages, configFileJSON);
+
+    return configFileJSON.ttypescript;
 }

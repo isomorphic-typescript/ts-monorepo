@@ -105,6 +105,9 @@ export const TSMonorepoConfigSchema = {
       ],
       "type": "object"
     },
+    "cleanBeforeCompile": {
+      "type": "boolean"
+    },
     "packageRoot": {
       "type": "string"
     },
@@ -116,14 +119,19 @@ export const TSMonorepoConfigSchema = {
       ],
       "type": "object"
     },
+    "ttypescript": {
+      "type": "boolean"
+    },
     "version": {
       "type": "string"
     }
   },
   "required": [
     "baseConfigs",
+    "cleanBeforeCompile",
     "packageRoot",
     "packages",
+    "ttypescript",
     "version"
   ],
   "type": "object"

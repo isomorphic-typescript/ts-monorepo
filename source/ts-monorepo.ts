@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "source-map-support/register";
 import * as path from 'path';
 import * as ansicolor from 'ansicolor';
 import * as chokidar from 'chokidar';
@@ -9,14 +10,17 @@ import { validateFilePresence } from './util/validate-presence-in-file-system';
 import { syncPackages } from './sync-logic/sync-packages';
 import { CommandRunner } from './util/command-runner';
 
+function generateTSBuildCommand(ttypescipt: boolean) {
+    return `npx ${ttypescipt ? "t" : ""}tsc -b --watch --preserveWatchOutput ./tsconfig-leaves.json`;
+}
+
 async function main() {
     console.log("");
     log.info(`PID = ${process.pid}`);
 
-    const TS_BUILD_COMMAND = "npx tsc -b --watch --preserveWatchOutput ./tsconfig-leaves.json";
     const configFileRelativePath = "ts-monorepo.json";
     const configAbsolutePath = path.resolve(configFileRelativePath);
-    var tsBuild = new CommandRunner(TS_BUILD_COMMAND);
+    var tsBuild = new CommandRunner(generateTSBuildCommand(false));
 
     function acknowledgeWatingForChanges() {
         log.info(ansicolor.green("Waiting for changes..."));
@@ -28,14 +32,17 @@ async function main() {
         configFileRelativePath);
     if (!initialConfigFilePresence.exists || initialConfigFilePresence.wrong) acknowledgeWatingForChanges();
 
+    var updateQueued = false;
     var currentAction = Promise.resolve();
     function runUpdate(message?: string) {
+        updateQueued = true;
         currentAction = currentAction.then(async () => {
+            updateQueued = false;
             if (tsBuild.isRunning()) await tsBuild.kill();
             if (message) log.info(message);
             try {
-                await syncPackages(configFileRelativePath, configAbsolutePath);
-                tsBuild = new CommandRunner(TS_BUILD_COMMAND);
+                const useTTypescript = await syncPackages(configFileRelativePath, configAbsolutePath);
+                tsBuild = new CommandRunner(generateTSBuildCommand(useTTypescript));
                 await tsBuild.start();
             } catch(e) {
                 log.error(`of type ${ansicolor.white(e.name)}`);
@@ -49,6 +56,7 @@ async function main() {
     chokidar.watch(configAbsolutePath)
         .on("change", _path => {
             setTimeout(() => {
+                if (updateQueued) return;
                 runUpdate(ansicolor.white("Detected change in config file."));
             }, 50);
         })
@@ -73,7 +81,7 @@ async function main() {
             });
         });
 
-    chokidar.watch(__dirname)
+    chokidar.watch(__filename)
         .on("change", async () => {
             if (tsBuild.isRunning()) await tsBuild.kill();
             restartProgram(() => {

@@ -24,6 +24,8 @@ export interface ProjectDescriptor {
 export default interface TSMonorepoConfig {
     version: string;
     packageRoot: string;
+    ttypescript: boolean;
+    cleanBeforeCompile: boolean;
     baseConfigs: {
         "package.json": PackageJSON;
         "tsconfig.json": TSConfigJSON;

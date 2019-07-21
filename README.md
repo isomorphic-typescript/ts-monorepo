@@ -10,10 +10,17 @@ Run it:<br />
 
 This is a tool which watches a configuration file named `ts-monorepo.json` which resides in the project root and has the following format:
 
-```json
+```jsonc
 {
+    // Note the ts-monorepo.json supports both line and
+    /*
+        block comments.
+    */
     "packageRoot": "packages",
     "version": "0.1.2",
+    "ttypescript": true, // This allows you to use ttypescript rather than normal typescript for compiling. I use ttypescript for the nameof library.
+    "cleanBeforeCompile": true, // This means whenever the config file changes, lerna clean will run and all incremental compilation info will be deleted.
+                                // Useful if you want to reset after corrupting some compilation or corrupting the node_modules. Downside is slower tool restart time.
     "baseConfigs": {
         "package.json": {
             "author": "Alexander Leung",
@@ -21,6 +28,8 @@ This is a tool which watches a configuration file named `ts-monorepo.json` which
         },
         "tsconfig.json": {
             "compilerOptions": {
+                // You can have comments anywhere in this file!
+                /* ...of both line and block style */
                 "module": "commonjs",
                 "target": "es6",
                 "lib": ["esnext"],
@@ -85,7 +94,9 @@ The file represents a centralized place to store [DRY](https://en.wikipedia.org/
 The generated tsconfig.json and package.json files from this tool in each package directory are a [deepmerge](https://www.npmjs.com/package/deepmerge) of the baseConfig object and config object of individual project, with 2 major caveats to this rule: 
 
 <ol>
-<li> the behavior of merging a `package.json` file's `dependencies`, `devDependencies`, and `peerDependencies` object is first an array merge to get the combined set of dependencies, then a transformation of this array into a valid npm dependency object where each package name refers to the most up-to-date version of that package.
+<li> 
+
+the behavior of merging a `package.json` file's `dependencies`, `devDependencies`, and `peerDependencies` object is first an array merge to get the combined set of dependencies, then a transformation of this array into a valid npm dependency object where each package name refers to the most up-to-date version of that package.
  
  For example, this value for `"baseConfigs"`.`"package.json"`.`"devDependencies"` in `ts-monorepo.json`
  ```json
@@ -140,6 +151,19 @@ Instead of calling `lerna bump`, you must now update the version field explicitl
     1. Arrays are unioned together rather than the child's array replacing the parent config's array, leading to less config repetition.
     1. When specifying relative paths in the ts-monorepo.json baseConfig, they are copied as plaintext to each package's tsconfig, meaning you can for example have all packages use the same folders for source and distribution without needing to specify this in each leaf tsconfig, whereas when doing this with tsconfig's own `extends` field, the relative paths would be relative to the path of the inherited base tsconfig file rather than the project's tsconfig file, which is undesireable in most circumstances I have encountered.
 1. [Unlike Lerna](https://github.com/lerna/lerna/issues/1282#issuecomment-387918197), you can link and publish packages from the distribution directory rather than the package root directory. To enable this, set the `publishDistributionFolder` attribute to true in a particular package config. Note that for this option to work, you must also ensure that the generated tsconfig.json contains a `compilerOptions`.`outDir` value.
+
+## Notes on Node.js Development
+
+Because of the way `npm link` works, when you develop for node.js, you will want to use the `--preserve-symlinks` CLI argument if one
+of the leaf packages depends on a different package within the monorepo that has peer dependencies. See [here](http://chevtek.io/you-can-finally-npm-link-packages-that-contain-peer-dependencies/) for an explanation on why this is.
+
+You will also want to enable source maps. The transpile step is already generating the source map files, but you need to instruct node how to read them (it doesn't read source maps by default unlike the browser). So you will want to `npm i -D source-map-support` then run your compiled node JS via the `-r source-map-support/register` flag.
+
+Here's the full command
+
+```
+node --preserve-symlinks -r source-map-support/register ./dist/my_node_program.js
+```
 
 ## Any Examples?
 
