@@ -16,6 +16,7 @@ import { syncTSConfigJSON } from './sync-tsconfig.json';
 import { syncLernaJSON } from './sync-lerna.json';
 import { syncTSConfigLeavesJSON } from './sync-tsconfig-leaves.json';
 import { CommandRunner } from '../util/command-runner';
+import { comprehensiveDelete } from '../util/recursive-delete-directory';
 
 const CONFIGURATION_ERROR = new Error("See above error message(s)");
 CONFIGURATION_ERROR.stack = undefined;
@@ -169,6 +170,14 @@ export async function syncPackages(configFileRelativePath: string, configAbsolut
             const buildInfoFileExists = await fsAsync.exists(buildInfoFilePath);
             if (buildInfoFileExists) {
                 await fsAsync.deleteFile(buildInfoFilePath);
+            }
+            // Remove the dist folder
+            if (tsConfigSyncResult.obj.compilerOptions && tsConfigSyncResult.obj.compilerOptions.outDir !== undefined) {
+                const distDir = tsConfigSyncResult.obj.compilerOptions.outDir;
+                const distDirRelative = path.join(relativePackagePath, distDir)
+                    .replace(/\\/g, "/"); // deal with windows
+                const distDirAbsolute = path.resolve("./" + distDirRelative);
+                await comprehensiveDelete(distDirAbsolute);
             }
         }
 
