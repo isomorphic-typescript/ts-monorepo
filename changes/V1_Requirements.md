@@ -13,7 +13,7 @@ This document outlines the planned changes from V0 to V1.
 
 <tr>
 <td>
-[ ]
+<input type="checkbox" />
 </td>
 <td>
 When specifying dependencies, either include the name in the array for the tool to determine latest version, or put an object in the array which allows you to define the version.
@@ -26,7 +26,7 @@ type DependencyEntry = string | {package: string, version: string};
 
 <tr>
 <td>
-[ ]
+<input type="checkbox" />
 </td>
 <td>
 ts-monorepo will take over the bootstrap and hoist responsibilities from lerna, such that there is only one instance of each package stored on disk between all projects of the monorepo. It will also use symlinking such that the node_modules folder of each project reflects how it would be structured after a normal <code>npm install</code> rather than linked projects containing a node_modules which has all its dependencies and dev dependencies inside
@@ -35,7 +35,7 @@ ts-monorepo will take over the bootstrap and hoist responsibilities from lerna, 
 
 <tr>
 <td>
-[ ]
+<input type="checkbox" />
 </td>
 <td>
 Now instead of having base configs of tsconfig.json and package.json only, it should be basePackageConfigs which is a map from template name to template (renaming this option from <code>basePackageConfigs</code> to <code>templates</code>). Each template then has configs for tsconfig.json, package.json, other config files/objects, plus options unique to a ts-monorepo package. Having multiple templates means that package config must now extend its base explicitly by name (or extend nothing). Each package config will have an <code>extends</code> field which is an ordered array of template names. The templates will be applied in the given order, with later entries overwriting earlier ones during deep merge. Finally the package config itself will act as the final overwrite. In addition to package configs being able to extend templates, templates will also be able to extend other templates. ts-monorepo will ensure that no circular template dependencies exist.
@@ -44,7 +44,7 @@ Now instead of having base configs of tsconfig.json and package.json only, it sh
 
 <tr>
 <td>
-[ ]
+<input type="checkbox" />
 </td>
 <td>
 For cases where many packages begin with the same prefix (i.e. "webpack-hmr-one", "webpack-hmr-two", "webpack-hmr-three", etc.), a hierarchy of folders may now be used to organize the monorepo on disk. Under <code>monorepo</code> an object will either be a <code>SubPackageConfig</code> or a <code>PackageConfig</code>. A <code>SubPackageConfig</code> will have the fields <code>children</code>, <code>delimiter</code>, and <code>package</code>. <code>children</code> attribute is a map from name to more package or subpackage configs. <code>delimiter</code> is an option within a subpackage config which will be a series of characters which are used to join the existing package name up until that point with the names of the package configs belonging to the given subpackage config. Finally, <code>package</code> allows for the monorepo to have a package named <code>my-project</code> and <code>my-project-helpers</code> at the same time. Note that this config strategy allows for the possibility of multiple config structures to resolve to the same package name. In these cases ts-monorepo will ensure each package name is only resolved to once, also taking into account <a href="https://www.cyberciti.biz/faq/linuxunix-rules-for-naming-file-and-directory-names/">npm's moniker rules</a> when evaluating equivalence.
