@@ -19,7 +19,7 @@ This document outlines the planned changes from V0 to V1.
 When specifying dependencies, either include the name in the array for the tool to determine latest version, or put an object in the array which allows you to define the version.
 
 ```typescript
-type DependencyEntry = string | {package: string, version: string};
+type NodeDependency = string | {package: string, version: string};
 ```
 </td>
 </tr>
@@ -55,24 +55,19 @@ For cases where many packages begin with the same prefix (i.e. "webpack-hmr-one"
 
 On top of these new features I plan on removing the following:
 
-1. No more `packageRoot` option. It will be `monorepo` without the ability to change that.
+1. No more `packageRoot` option. It will be `packages` without the ability to change that.
 1. No more `publishDistributionFolder` option. This will be enabled for all packages.
 1. The `rootDir` and `outDir` compiler options in tsconfig can no longer be customized. They will automatically be `./source` and `./distribution` respectively. Also `include` will be auto forced to contain `"source/**/*"`
 
 The theme here is embracing convention over configuration, without limiting possibilities of what can be done with other tools. With that in mind here's one more convention which will be added:
 
-1. The first level under `monorepo` will be a map from scope name to `PackageConfig|SubpackageConfig`; the first level may not contain package names, only scope names. For any package which should not be under any scope, it will be mandated that the literal string `global-scope` is used.
+1. The first level under `packages` will be a map from scope name to `PackageConfig|SubpackageConfig`; the first level may not contain package names, only scope names. For any package which should not be under any scope, it will be mandated that the literal string `global-scope` is used.
 
 ## Features which will not immediately be part of V1:
 
-<ol>
-<li>
-Give packages the ability to set their own version if desired.
-</li>
-<li>
-Add VSCode extension to recognize the structure, allow comments, validate package names, and have go to link from package name to reference on npm, within config file, or within monorepo. Have a clickable link next to monorepo versions to bump up by patch, minor, or major version, and show how that version in the monorepo config file differs from what is currently published to npm.
-</li>
-</ol>
+1. Give packages the ability to set their own version if desired.
+1. Add VSCode extension to recognize the structure, allow comments, validate package names, and have go to link from package name to reference on npm, within config file, or within monorepo. Have a clickable link next to monorepo versions to bump up by patch, minor, or major version, and show how that version in the monorepo config file differs from what is currently published to npm.
+1. Plugin support allowing for both autocomplete of different values and different config file types, like yaml, toml, ini, xml
 
 ## What will ts-monorepo.json look like after this is all over?
 

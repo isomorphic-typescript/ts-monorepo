@@ -1,4 +1,4 @@
-import TSMonorepoConfig from "../config-file-structural-checking/config";
+import TSMonorepoJson from "../config-file-structural-checking/config";
 
 export class PackageDependencyTracker {
     private static PACKAGE_REGISTRY: Map<string, PackageDependencyTracker> = new Map();
@@ -10,7 +10,7 @@ export class PackageDependencyTracker {
 
     private packageList: string[];
 
-    private constructor(packageName: string, configJSON: TSMonorepoConfig) {
+    private constructor(packageName: string, configJSON: TSMonorepoJson) {
         if (PackageDependencyTracker.PACKAGE_REGISTRY.has(packageName)) {
             throw new Error(`package ${packageName} already registered`);
         }
@@ -21,13 +21,13 @@ export class PackageDependencyTracker {
         PackageDependencyTracker.PACKAGE_REGISTRY.set(packageName, this);
 
         const descriptor = configJSON.packages[packageName]
-        const packageJSON = descriptor.configs["package.json"];
+        //const packageJSON = descriptor.configs["package.json"];
         this.registerDependencies(configJSON, packageJSON.dependencies);
         this.registerDependencies(configJSON, packageJSON.devDependencies);
         this.registerDependencies(configJSON, packageJSON.peerDependencies);
     }
 
-    private registerDependencies(configJSON: TSMonorepoConfig, dependencies?: string[]) {
+    private registerDependencies(configJSON: TSMonorepoJson, dependencies?: string[]) {
         if (dependencies) {
             dependencies
                 .filter(dependency => this.packageList.includes(dependency))
@@ -39,7 +39,7 @@ export class PackageDependencyTracker {
         }
     }
 
-    public static registerPackage(packageName: string, configJSON: TSMonorepoConfig): PackageDependencyTracker {
+    public static registerPackage(packageName: string, configJSON: TSMonorepoJson): PackageDependencyTracker {
         if (!Object.keys(configJSON.packages).includes(packageName)) {
             throw new Error(`Trying to register package '${packageName}', which is not a member of the packages object in the config.`);
         }

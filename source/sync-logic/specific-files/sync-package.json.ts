@@ -2,11 +2,11 @@ import * as deepmerge from 'deepmerge';
 import * as latestVersion from 'latest-version';
 import * as path from 'path';
 
-import TSMonorepoConfig, { PackageJSON } from "../config-file-structural-checking/config";
-import { PackageDependencyTracker } from './package-dependency-tracker';
-import { syncGenericJSON } from './sync-generic.json';
+import TSMonorepoJson, { PackageJSON } from "../../config-file-structural-checking/config";
+import { PackageDependencyTracker } from '../package-dependency-tracker';
+import { syncGenericJSON } from '../sync-generic.json.js';
 
-export async function syncPackageJSON(packageName: string, relativePackageName: string, absolutePackagePath: string, configFileJSON: TSMonorepoConfig) {
+export async function syncPackageJSON(packageName: string, relativePackageName: string, absolutePackagePath: string, configFileJSON: TSMonorepoJson) {
     const resultingPackageJSONObj: PackageJSON = deepmerge(
         deepmerge(
             configFileJSON.baseConfigs["package.json"], 
