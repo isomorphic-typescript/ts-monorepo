@@ -43,13 +43,11 @@ export async function syncMonorepo(): Promise<Terminateable> {
     const errors = (await Promise.all(Object.entries(monorepoConfig.packages)
         .map(async ([scopeName, packageTree]) => {
             const errors: ConfigError[] = [];
-            const createdFolders: Map<string, boolean> = new Map();
 
             // Scope
             errors.push(...validateScope(scopeName));
             if (errors.length > 0) return errors;
             const relativeScopeDirectoryPath = path.join(PACKAGES_DIRECTORY_RELATIVE_PATH, scopeName);
-            createdFolders.set(relativeScopeDirectoryPath, false);
             
             //errors.push(...await assertFileExists(relativeScopeDirectoryPath));
             //if (errors.length > 0) return errors;
@@ -221,7 +219,13 @@ export async function syncMonorepo(): Promise<Terminateable> {
                 packageTree,
                 initialContext,
                 async function writeFilesForPackageConfig(config: PackageConfig, context: ConfigTreeTraversalContext) {
+                    const errors: ConfigError[] = [];
+                    errors.push(...await assertDirectoryExistsOrCreate(path.resolve(context.relativePath)));
+                    if (errors.length > 0) return errors;
 
+                    // Register dependencies.
+
+                    return errors;
                 },
                 async function createJunctionFolders(_config: PackageConfigJunction, context: ConfigTreeTraversalContext, _childContexts: Record<string, ConfigTreeTraversalContext>) {
                     return assertDirectoryExistsOrCreate(path.resolve(context.relativePath));
