@@ -24,13 +24,15 @@ import { ConfigError, ErrorType } from '../error';
 import { Terminateable } from '../common-traits';
 import { colorize } from '../colorize-special-text';
 import { PackageConfig, PackageConfigJunction, isNotJunction } from '../config-file-structural-checking/config';
+import { MonoreportPackageRegistry } from '../package-dependencies/monorepo-package-registry';
 
 const CONFIGURATION_ERROR = new Error("See above error message(s)");
 CONFIGURATION_ERROR.stack = undefined;
 CONFIGURATION_ERROR.name = "ConfigurationError";
 
 export async function syncMonorepo(): Promise<Terminateable> {
-    PackageDependencyTracker.reset();
+    PackageDependencyTracker.reset(); // TODO: remove once package registry finished.
+    const packageRegistry = new MonoreportPackageRegistry();
     assertNoErrors(await assertFileExists(CONFIG_FILE_RELATIVE_PATH));
     const configFileContents = (await fs.promises.readFile(CONFIG_FILE_ABSOLUTE_PATH)).toString();
     // TODO: pass comments down to generated jsons (for json which supports this)
@@ -223,6 +225,7 @@ export async function syncMonorepo(): Promise<Terminateable> {
                     errors.push(...await assertDirectoryExistsOrCreate(path.resolve(context.relativePath)));
                     if (errors.length > 0) return errors;
 
+                    // Merge configs with templates.
                     // Register dependencies.
 
                     return errors;
@@ -236,6 +239,15 @@ export async function syncMonorepo(): Promise<Terminateable> {
         })))
         .flat();
     assertNoErrors(errors);
+
+    // then iterate through registry and 1. Write files, 2. install dependencies.
+
+    // TODO: we would like to have a feature whereby the user may choose specific package implementations
+    // to override. Otherwise, on every install step, we would be trashing any discrepancies between the
+    // installed dependency and the version of that dependency saved to npm.. This may be unintended behavior
+    // for the user since they may want to override implementations in order to experiment with changes.
+
+    // then dump registry's leaf packages to leaves file.
 
     // ORIGINAL BEGINS HERE
 
