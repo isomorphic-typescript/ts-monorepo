@@ -6,5 +6,6 @@ export const colorize = {
     scope: ansicolor.yellow,
     package: ansicolor.magenta,
     command: ansicolor.blue,
-    error: ansicolor.white
+    error: ansicolor.red,
+    template: ansicolor.lightMagenta
 };

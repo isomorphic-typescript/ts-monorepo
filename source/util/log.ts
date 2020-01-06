@@ -1,16 +1,18 @@
 import ansicolor = require("ansicolor");
 
+const pid = process.pid;
+
 export const log = {
     error(message: string) {
-        console.log(   ansicolor.red("  [ERROR] " + message));
+        console.log(`  [${pid} ${ansicolor.red("ERROR")}] ${message}`);
     },
     warn(message: string) {
-        console.log(ansicolor.yellow("[WARNING] " + message));
+        console.log(`[${pid} ${ansicolor.yellow("WARNING")}] ${message}`);
     },
     info(message: string) {
-        console.log("   [INFO] " + message);
+        console.log(`   [${pid} INFO] ${message}`);
     },
     trace(message: string) {
-        console.log(ansicolor.magenta("  [TRACE] " + message));
+        console.log(`  [${pid} ${ansicolor.magenta("TRACE")}] ${message}`);
     }
 }

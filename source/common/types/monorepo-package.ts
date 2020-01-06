@@ -1,12 +1,12 @@
-import { MergedPackageJson } from "../common/types";
+import { MergedPackageConfig } from "./merged-config";
 
 export interface MonorepoPackage {
     relativePath: string;
     name: string;
     version: string;
-    monorepo: {
+    relationships: {
         dependsOn: Record<string, MonorepoPackage>;
         dependencyOf: Record<string, MonorepoPackage>;
     };
-    npm: MergedPackageJson;
+    config: MergedPackageConfig;
 }

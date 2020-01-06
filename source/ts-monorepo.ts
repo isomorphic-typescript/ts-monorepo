@@ -3,55 +3,82 @@ import "source-map-support/register";
 import { log } from './util/log';
 import { restartProgram } from './util/restart-program';
 import { syncMonorepo } from './sync-logic/sync-monorepo';
-import { CommandRunner } from './util/command-runner';
 import { watch } from "./file-system/watcher";
-import { TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_RELATIVE_PATH, CONFIG_FILE_NAME, CONFIG_FILE_ABSOLUTE_PATH } from './common-values';
+import { CONFIG_FILE_NAME, CONFIG_FILE_ABSOLUTE_PATH, TOOL_NAME } from './common/constants';
 import { colorize } from "./colorize-special-text";
+import { Terminateable } from "./common/traits";
+import { tryCatch } from 'fp-ts/lib/TaskEither';
+import { flatten, fold } from 'fp-ts/lib/Either';
+import { pipe } from 'fp-ts/lib/pipeable';
+import { Option, some, none, isSome } from 'fp-ts/lib/Option';
+import { ErrorType, ConfigError } from "./common/errors";
 
-function generateTSBuildCommand(ttypescipt: boolean) {
-    return `npx ${ttypescipt ? "t" : ""}tsc -b --watch --preserveWatchOutput ${TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_RELATIVE_PATH}`;
-}
-
+const watchers: Terminateable[] = [];
 async function main() {
     console.log("");
-    log.info(`PID = ${process.pid}`);
+    log.info(`pid = ${process.pid}`);
+    log.info(`${colorize.package(TOOL_NAME)} v${require('../package.json').version}`);
 
-    var updateQueued = false;
+    var updateQueued = false; // This ensures that only one sync monorepo operation is occurring at a time.
     var currentSyncTask = Promise.resolve();
-    var activeBuildTask: CommandRunner | undefined;
+    var maybeActiveBuildTask: Option<Terminateable> = none;
     function queueMonorepoSync() {
         if (updateQueued) return;
         updateQueued = true;
         currentSyncTask = currentSyncTask.then(async () => {
             updateQueued = false;
-            if(activeBuildTask) await activeBuildTask.kill();
+            if(isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
             log.info(`Parsing ${colorize.file(CONFIG_FILE_NAME)}`);
-            try {
-                const useTTypescript = await syncMonorepo();
-                activeBuildTask = new CommandRunner(generateTSBuildCommand(useTTypescript));
-            } catch(e) {
-                log.error(`of type ${colorize.error(e.name)}`);
-                console.log(e.stack || e.message);
-                log.info("Waiting for changes...");
-            }
+            maybeActiveBuildTask = pipe(
+                await tryCatch(
+                    syncMonorepo(),
+                    (e: any) => [{
+                        type: ErrorType.UnexpectedRuntimeError,
+                        message: `${e.stack || e.message}`
+                    } as ConfigError]
+                )(),
+                flatten,
+                fold(
+                    configErrors => {
+                        log.error(`${configErrors.length} errors:\n\n${
+                            configErrors.map(
+                                (configError, index) => `${(index + 1)}. ${colorize.error(configError.type)}\n${configError.message}`
+                            ).join("\n\n")
+                        }\n`);
+                        log.info("Waiting for changes...");
+                        return none;
+                    },
+                    some
+                )
+            );
         });
     }
 
-    watch(CONFIG_FILE_ABSOLUTE_PATH, {
-        onExists: queueMonorepoSync,
+    watchers.push(await watch(CONFIG_FILE_ABSOLUTE_PATH, {
         onChange: queueMonorepoSync,
         onRemove() {
             log.warn(`${colorize.file(CONFIG_FILE_NAME)} deleted. Re-add it to resume watching.`);
         }
-    });
-    watch(__filename, {
+    }));
+    watchers.push(await watch(__filename, {
         async onChange() {
-            if (activeBuildTask) await activeBuildTask.kill();
-            restartProgram(() => {
+            if (isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
+            restartProgram(async () => {
                 log.info("Detected change in program itself.");
+                log.info("Terminating watchers.");
+                await Promise.all(watchers.map(watcher => watcher.terminate()));
             });
         }
-    });
+    }));
+
+    queueMonorepoSync();
 }
 
-main();
+main().catch((e: Error) => {
+    restartProgram(async () => {
+        log.info("Program crashed.");
+        console.log(e.message || e.stack);
+        log.info("Terminating watchers.");
+        await Promise.all(watchers.map(watcher => watcher.terminate()));
+    });
+});

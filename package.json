@@ -6,7 +6,7 @@
     "ts-monorepo": "./distribution/ts-monorepo.js"
   },
   "scripts": {
-    "build:pre": "npm install && npm run generate:validator",
+    "build:pre": "npm install",
     "build:watch": "npm run build:pre && tsc -b --watch --verbose",
     "build:normal": "npm run build:pre && tsc -b --verbose",
     "patch": "npm run build:normal && git add . && npm version patch -fm",
@@ -29,13 +29,15 @@
     "chokidar": "^3.3.0",
     "comment-json": "^2.1.0",
     "deepmerge": "^3.2.1",
+    "fp-ts": "^2.3.1",
+    "io-ts": "^2.0.3",
     "latest-version": "^5.1.0",
     "lerna": "^3.15.0",
     "pacote": "10.1.3",
     "source-map-support": "^0.5.12",
     "ts-node": "^8.3.0",
     "ttypescript": "^1.5.7",
-    "typescript": "^3.5.2",
+    "typescript": "^3.7.2",
     "typescript-json-validator": "^2.2.2",
     "validate-npm-package-name": "^3.0.0"
   },

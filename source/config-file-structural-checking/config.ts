@@ -1,3 +1,4 @@
+/*
 export type NodeDependency = string | [string, string];
 export interface PackageJSON {
     dependencies?: NodeDependency[];
@@ -7,9 +8,10 @@ export interface PackageJSON {
 }
 
 export interface TSConfigJSON {
-    compilerOptions?: {
-        outDir?: string;
-    };
+    compilerOptions?: {};
+    include?: string[];
+    exclude?: string[];
+    files?: string[];
 }
 
 export interface PackageConfigJunction {
@@ -23,7 +25,7 @@ export function isNotJunction(packageSubtree: PackageConfigJunction | PackageCon
 export interface PackageConfig {
     package: true;
     extends: string[];
-    files: {
+    files?: {
         json?: {
             "package.json"?: PackageJSON;
             "tsconfig.json"?: TSConfigJSON;
@@ -63,3 +65,4 @@ export default interface TSMonorepoJson {
         [scope: string]: PackageConfigJunction
     };
 }
+*/

@@ -3,7 +3,7 @@ import { log } from './log';
 import { colorize } from '../colorize-special-text';
 
 export class CommandRunner {
-    private static OS_IS_WINDOWS = require("os").platform() === 'win32';
+    private static readonly OS_IS_WINDOWS = require("os").platform() === 'win32';
     private readonly commandProcess: child_process.ChildProcess;
     private readonly finishedPromise: Promise<void>;
     private killed = false;

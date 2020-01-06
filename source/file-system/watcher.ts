@@ -1,16 +1,13 @@
 import * as chokidar from 'chokidar';
 import { FileSystemObjectDescriptor, getFileSystemObjectDescriptor } from './object';
+import { Terminateable } from '../common/traits';
 interface FileWatcherHandlers {
     onExists?: (descriptor: FileSystemObjectDescriptor) => void;
     onChange?: (descriptor: FileSystemObjectDescriptor) => void;
     onRemove?: (path: string, wasDirectory: boolean) => void;
 }
 
-interface Closable {
-    close: () => Promise<void>
-}
-
-export async function watch(path: string, handlers: FileWatcherHandlers): Promise<Closable> {
+export async function watch(path: string, handlers: FileWatcherHandlers): Promise<Terminateable> {
     const watcher = chokidar.watch(path, {followSymlinks: false});
     if (handlers.onExists) {
         const onExists = handlers.onExists;
@@ -45,7 +42,7 @@ export async function watch(path: string, handlers: FileWatcherHandlers): Promis
     return new Promise(resolve => {
         watcher.on("ready", () => {
             resolve({
-                close: () => watcher.close()
+                terminate: () => watcher.close()
             });
         });
     });
