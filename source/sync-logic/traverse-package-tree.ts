@@ -18,6 +18,8 @@ function removeLeadingPunctuation(packageNameSegment: string): string {
     return "";
 }
 
+export const nameSegmentToSubFolderName = removeLeadingPunctuation;
+
 export interface ConfigTreeTraversalContext {
     packageNamePrefix: string;
     relativePath: string;
@@ -67,7 +69,7 @@ export function traversePackageTree(
                 const childContexts = pipe(
                     Object.keys(junctionConfig),
                     array.map(nameSegment => {
-                        const pathSegment = removeLeadingPunctuation(nameSegment);
+                        const pathSegment = nameSegmentToSubFolderName(nameSegment);
                         return [
                             nameSegment,
                             {

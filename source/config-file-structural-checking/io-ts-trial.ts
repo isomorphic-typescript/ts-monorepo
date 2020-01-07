@@ -9,6 +9,7 @@ import { ConfigError, ErrorType } from '../common/errors';
 import { taskEithercoalesceConfigErrors } from '../sync-logic/error-coalesce';
 import { traversePackageTree, generateInitialContext, constructPresentableConfigObjectPath } from '../sync-logic/traverse-package-tree';
 import { colorize } from '../colorize-special-text';
+import * as ansicolor from 'ansicolor';
 
 const NodeDependencyVersioned = t.tuple([t.string, t.string]);
 const NodeDependencyUnversioned = t.string;
@@ -32,7 +33,7 @@ const JsonConfigs = t.partial({
     "tsconfig.json": PartialTSConfigJson
 }, 'json configs');
 
-//const typeNameJunctionConfig = "JunctionConfig";
+const typeNameJunctionConfig = "JunctionConfig";
 const typeNamePackageConfig = "PackageConfig";
 
 export const PackageConfig = t.intersection([
@@ -55,7 +56,10 @@ export const PackageConfig = t.intersection([
         ])
     })
 ], typeNamePackageConfig);
-export const JunctionConfig = t.UnknownRecord;
+export const JunctionConfig = t.record(
+    t.string,
+    t.unknown,
+    `${typeNameJunctionConfig}={[nameSegment: string]: ${typeNameJunctionConfig}|${typeNamePackageConfig}}`);
 
 export const TSMonorepoJson = t.intersection([
     t.type({
@@ -69,11 +73,11 @@ export const TSMonorepoJson = t.intersection([
     })
 ]);
 
-const packageConfigExplanation = `For a ${typeNamePackageConfig}, ensure that the name segment ends with "${PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX}"`;
+const packageConfigExplanation = `To configure a package (rather than a junction), ensure the name segment ends with "${PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX}"`;
 
 export const validatePackageConfig = (configPath: string[]) => (input: unknown) => pipe(
     PackageConfig.decode(input),
-    either.mapLeft(convertErorrs(configPath, configPath[0] === PACKAGES_DIRECTORY_NAME ? packageConfigExplanation : undefined))
+    either.mapLeft(convertErorrs(configPath))
 );
 
 export const validateJunctionConfig = (configPath: string[]) => (input: unknown) => pipe(
@@ -86,17 +90,29 @@ const convertErorrs = (pathPrefix: string[], additionalMessage?: string) => (err
         type: ErrorType.InvalidConfig,
         message: (() => {
             const lastContextEntry = error.context[error.context.length - 1];
+            var priorContextEntry: t.ContextEntry | undefined = undefined;
+            const contextWithParentTags: {parentTag: string | undefined, entry: t.ContextEntry}[] = [];
+            for (var i = 0; i < error.context.length; ++i) {
+                contextWithParentTags[i] = {
+                    parentTag: (priorContextEntry?.type as any)?._tag,
+                    entry: error.context[i]
+                };
+                priorContextEntry = error.context[i];
+            }
             const keyPath = constructPresentableConfigObjectPath([
                 ...pathPrefix,
-                ...error.context.map(contextEntry => contextEntry.key).filter(key => key.length > 0)
+                ...contextWithParentTags
+                    .slice(1)
+                    .filter(contextEntry => contextEntry.parentTag !== 'IntersectionType')
+                    .map(contextEntry => contextEntry.entry.key)
             ]);
-            return `Error at ${colorize.file(CONFIG_FILE_NAME)}${keyPath}. Expected type ${lastContextEntry.type.name} but instead got value ${lastContextEntry.actual}${additionalMessage ? "\n" + additionalMessage : ""}`;
+            return `\n ${ansicolor.magenta('subject:')} ${colorize.file(CONFIG_FILE_NAME)}${keyPath}${
+                 "\n"}   ${ansicolor.red('error:')} Expected type ${lastContextEntry.type.name} but instead got value "${lastContextEntry.actual}"${additionalMessage ? "\n\n" + additionalMessage : ""}`;
         })()
     }));
 }
 
 export function validateTSMonoRepoJsonShape(input: Object): taskEither.TaskEither<ConfigError[], t.TypeOf<typeof TSMonorepoJson>> {
-    console.log("object = " + input);
     return pipe(
         // First validate shape of the json.
         TSMonorepoJson.decode(input),

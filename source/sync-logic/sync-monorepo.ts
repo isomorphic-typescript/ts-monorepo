@@ -21,6 +21,7 @@ import { CommandRunner } from '../util/command-runner';
 import { taskEithercoalesceConfigErrors } from './error-coalesce';
 import { log } from '../util/log';
 import { validateTSMonoRepoJsonShape } from '../config-file-structural-checking/io-ts-trial';
+import { validateNoUnexpectedFolders } from './validate-no-unexpected-folders';
 
 const npmToolName = require("../../package.json").name;
 
@@ -65,7 +66,9 @@ export function syncMonorepo(): taskEither.TaskEither<ConfigError[], Terminateab
                     )
                 )
             )),
-            // 4. Write files.
+            // 4. Make sure no unexpected folders exist
+            taskEither.chain(() => validateNoUnexpectedFolders(monorepoConfig)), // TODO: add watchers so that if unexpected objects are removed, then sync is rerun.
+            // 5. Write files.
             taskEither.chain(() => pipe(
                 Array.from(packageRegistry.getRegisteredPackages()),
                 array.map(monorepoPackage => writeMonorepoPackageFiles(monorepoPackage, packageRegistry, cachedLatestVersionFetcher)),
@@ -76,8 +79,8 @@ export function syncMonorepo(): taskEither.TaskEither<ConfigError[], Terminateab
                 TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_RELATIVE_PATH,
                 monorepoPackageRegistryToTSProjectLeavesJsonOutput(packageRegistry)
             )),
-            // 5. Install dependencies.
-            // 6. Set up watchers
+            // 6. Install dependencies.
+            // 7. Set up watchers
             taskEither.map(() => {
                 if (packageRegistry.getLeafSet().size === 0) {
                     log.info("No packages to compile.");

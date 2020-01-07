@@ -15,6 +15,7 @@ export enum ErrorType {
     DuplicateDependencyInPackageJsonConfig = "DuplicateDependencyInPackageJsonConfig",
     JsonParseError = "JsonParseError",
     UnexpectedRuntimeError = "UnexpectedRuntimeError",
+    UnexpectedFilesystemObject = "UnexpectedFilesystemObject",
     // Errors specific to ts-config.json
     ExplicitRootDirInTSConfigJson = "ExplicitRootDirInTSConfigJson",
     ExplicitOutDirInTSConfigJson = "ExplicitOutDirInTSConfigJson",
