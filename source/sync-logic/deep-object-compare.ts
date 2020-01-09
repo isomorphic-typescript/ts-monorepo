@@ -6,7 +6,7 @@ export function deepComparison(oldObj: any, newObj: any, keyChain: string): stri
     const newObjKeys = Object.keys(newObj);
     const fields = new Set<string>([...oldObjKeys, ...newObjKeys]);
     const differences: string[] = [];
-    function representation(value?: JSONPrimitive) {
+    function representation(colorizer: (input: string) => string, value?: JSONPrimitive) {
         if(value === undefined) return "";
         if(typeof value === 'object') {
             if (Array.isArray(value)) {
@@ -15,9 +15,9 @@ export function deepComparison(oldObj: any, newObj: any, keyChain: string): stri
                 return " {...}";
             }
         } else if (typeof value === 'string') {
-            return ` "${value}"`;
+            return ` "${colorizer(value)}"`;
         } else {
-            return " " + new String(value);
+            return " " + colorizer(String(value));
         }
     }
     function explainDifference(field: string, newValue?: JSONPrimitive, oldValue?: JSONPrimitive) {
@@ -25,7 +25,7 @@ export function deepComparison(oldObj: any, newObj: any, keyChain: string): stri
             newValue === undefined ? "Remove" :
             oldValue === undefined ? "   Add" :
                                      "Change";
-        differences.push(`${action} ${keyChain}[${ansicolor.white(field)}]:${ansicolor.red(representation(oldValue))}${ansicolor.green(representation(newValue))}`);
+        differences.push(`${action} ${keyChain}[${ansicolor.white(field)}]:${representation(ansicolor.lightMagenta, oldValue)}${representation(ansicolor.lightGreen, newValue)}`);
     }
     fields.forEach(field => {
         const oldField = oldObj[field];

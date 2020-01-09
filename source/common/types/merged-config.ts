@@ -1,19 +1,16 @@
 import * as t from 'io-ts';
-import { NodeDependency } from '../../config-file-structural-checking/io-ts-trial';
+import { CompletePackageJson } from '../../config-file-structural-checking/io-ts-trial';
+import { MandatoryTSConfigJsonValues } from '../../sync-logic/input-validation/validate-tsconfig.json';
 
-export interface MergedPackageJson {
+export type MergedPackageJson = t.TypeOf<typeof CompletePackageJson> & {
     name: string;
-    version: string;
-    dependencies: t.TypeOf<typeof NodeDependency>[];
-    devDependencies: t.TypeOf<typeof NodeDependency>[];
-    peerDependencies: t.TypeOf<typeof NodeDependency>[];
-    optionalDependencies: t.TypeOf<typeof NodeDependency>[];
 }
 
 export interface MergedPackageConfig {
     files: {
         json: {
-            "package.json": MergedPackageJson
+            "package.json": MergedPackageJson,
+            "tsconfig.json": typeof MandatoryTSConfigJsonValues
         }
     }
     // TODO: include space for skoville config.

@@ -11,12 +11,12 @@ import { Success, SUCCESS } from "../common/constants";
 export class MonorepoPackageRegistry {
     private readonly packages: Map<string, MonorepoPackage>;
     private readonly leafSet: Set<MonorepoPackage>;
-    private hashOfLeafSetPackages: string;
+    private hashOfAllPackages: string;
 
     public constructor() {
         this.packages = new Map();
         this.leafSet = new Set();
-        this.hashOfLeafSetPackages = "";
+        this.hashOfAllPackages = "";
     }
 
     public registerPackage(mergedPackageConfig: MergedPackageConfig, relativePath: string): either.Either<ConfigError[], Success> {
@@ -44,16 +44,7 @@ export class MonorepoPackageRegistry {
     }
 
     public getLeafSet() {
-        if (this.resolveMonorepoDependencies()) {
-            this.leafSet.clear();
-            // Loop through each package of the registry. If its "dependencyOf" has no elements,
-            // then it is a leaf package.
-            for (const registeredPackage of this.packages.values()) {
-                if (Object.keys(registeredPackage.relationships.dependencyOf).length === 0) {
-                    this.leafSet.add(registeredPackage);
-                }
-            }
-        }
+        this.resolveMonorepoDependencies()
         return new Set(this.leafSet);
     }
 
@@ -68,7 +59,7 @@ export class MonorepoPackageRegistry {
     private resolveMonorepoDependencies(): boolean {
         // TODO: the below 2 lines of code could be considered premature optimization. Run some heuristics to see what is preferable.
         const currentHashOfPackages = this.md5Hash(JSON.stringify(Object.fromEntries(this.packages.entries())));
-        if (currentHashOfPackages === this.hashOfLeafSetPackages) return false;
+        if (currentHashOfPackages === this.hashOfAllPackages) return false;
         // Clear all known information on dependencies.
         for (const registeredPackage of this.packages.values())  {
             registeredPackage.relationships.dependsOn = {};
@@ -110,7 +101,15 @@ export class MonorepoPackageRegistry {
                 }
             }
         }
-        this.hashOfLeafSetPackages = this.md5Hash(JSON.stringify(Object.fromEntries(this.packages.entries())));
+        this.hashOfAllPackages = this.md5Hash(JSON.stringify(Object.fromEntries(this.packages.entries())));
+        this.leafSet.clear();
+        // Loop through each package of the registry. If its "dependencyOf" has no elements,
+        // then it is a leaf package.
+        for (const registeredPackage of this.packages.values()) {
+            if (Object.keys(registeredPackage.relationships.dependencyOf).length === 0) {
+                this.leafSet.add(registeredPackage);
+            }
+        }
         return true;
     }
 
@@ -126,6 +125,11 @@ export class MonorepoPackageRegistry {
         return registeredPackage === undefined ? registeredPackage :
             registeredPackage.version === packageVersion || packageVersion === undefined ? registeredPackage : // TODO: should we use compatible versioning rather than strict equality of version?
             undefined;
+    }
+
+    public printPackages() {
+        console.log(this.hashOfAllPackages);
+        console.log(this.packages);
     }
 
     private md5Hash(input: string): string {

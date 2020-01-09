@@ -8,13 +8,9 @@ export function convertToMergedPackageJSON(name: string, version: string,
         version, // Putting version first allows the user to overwrite specific package version with their own input.
         ...inputPackageJSON, // Their own input.
         name,
-        dependencies: inputPackageJSON ?
-            inputPackageJSON.dependencies ? inputPackageJSON.dependencies : [] : [],
-        devDependencies: inputPackageJSON ?
-            inputPackageJSON.devDependencies ? inputPackageJSON.devDependencies : [] : [],
-        peerDependencies: inputPackageJSON ?
-            inputPackageJSON.peerDependencies ? inputPackageJSON.peerDependencies : [] : [],
-        optionalDependencies: inputPackageJSON ?
-            inputPackageJSON.optionalDependencies ? inputPackageJSON.optionalDependencies : [] : []
+        dependencies: inputPackageJSON?.dependencies ?? [],
+        devDependencies: inputPackageJSON?.devDependencies ?? [],
+        peerDependencies: inputPackageJSON?.peerDependencies ?? [],
+        optionalDependencies: inputPackageJSON?.optionalDependencies ?? []
     };
 }

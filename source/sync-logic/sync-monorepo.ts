@@ -28,6 +28,7 @@ const npmToolName = require("../../package.json").name;
 function generateTSBuildCommand(ttypescipt: boolean) {
     return `npx ./node_modules/${npmToolName}/node_modules/.bin/${ttypescipt ? "t" : ""}tsc -b --watch --preserveWatchOutput ${TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_RELATIVE_PATH}`;
 }
+
 export function syncMonorepo(): taskEither.TaskEither<ConfigError[], Terminateable> {
     const packageRegistry = new MonorepoPackageRegistry();
     const cachedLatestVersionFetcher = new CachedLatestVersionFetcher();

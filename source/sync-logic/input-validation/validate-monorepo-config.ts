@@ -14,7 +14,6 @@ import * as option from 'fp-ts/lib/Option';
 import * as t from 'io-ts';
 import { pipe } from "fp-ts/lib/pipeable";
 import * as array from 'fp-ts/lib/Array';
-//import { map as arrayMap, filter } from 'fp-ts/lib/Array';
 import { taskEithercoalesceConfigErrors } from "../error-coalesce";
 import { MergedPackageConfig } from "../../common/types/merged-config";
 import { TSMonorepoJson, PackageConfig, JunctionConfig } from "../../config-file-structural-checking/io-ts-trial";
@@ -53,11 +52,14 @@ const validatePackage =
         // Third, all of the templates that the package extends must be valid.
         config.extends,
         array.filter(extendsTemplateName => !templates.has(extendsTemplateName)),
-        array.map(extendsTemplateName => ({
-            type: ErrorType.NonExistentTemplate,
-            message: `The package name ${colorize.package(resolvedPackageName)} extends non-existent template ${colorize.template(extendsTemplateName)}`
-        })),
-        taskEither.left,
+        array.map(extendsTemplateName => !templates.has(extendsTemplateName) ? 
+            taskEither.left([{
+                type: ErrorType.NonExistentTemplate,
+                message: `The package name ${colorize.package(resolvedPackageName)} extends non-existent template "${colorize.template(extendsTemplateName)}".`
+            }]) :
+            taskEither.right(SUCCESS)
+        ),
+        taskEithercoalesceConfigErrors,
         // Fourth, the package config itself should have valid contents (tsconfig.json and package.json have some values which this tool must set itself, and so the use may not set those values)
         taskEither.chain(() => taskEither.fromEither(validatePackageConfig(config, `In package ${colorize.package(resolvedPackageName)} at ${presentableConfigObjectPath}`))),
         // Merge configs with templates.
@@ -136,30 +138,4 @@ export function validateMonorepoConfig(monorepoConfig: t.TypeOf<typeof TSMonorep
             )
         ))
     );
-    /*
-        validateAndMergeTemplates(monorepoConfig.templates),
-        either.map(templates => pipe(
-            Object.entries(monorepoConfig.packages),
-            arrayMap(([scope, packagesUnderScope]) => {
-                return pipe(
-                    validateScope(scope),
-                    either.map(() => generateInitialContext(scope)),
-                    either.map(initialContext => {
-                        return traversePackageTree(
-                            packagesUnderScope,
-                            initialContext,
-                            validatePackage(monorepoConfig, new Map(), templates, packageRegistry),
-                            validateJunction(initialContext)
-                        );
-                    }),
-                    taskEither.fromEither,
-                    taskEither.flatten
-                );
-            }),
-            taskEithercoalesceConfigErrors
-        )),
-        taskEither.fromEither,
-        taskEither.flatten
-    );
-    */
 }

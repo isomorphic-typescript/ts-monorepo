@@ -15,7 +15,8 @@ const NodeDependencyVersioned = t.tuple([t.string, t.string]);
 const NodeDependencyUnversioned = t.string;
 export const NodeDependency = t.union([NodeDependencyUnversioned, NodeDependencyVersioned]);
 const NodeDependencies = t.array(NodeDependency);
-const CompletePackageJson = t.type({
+export const CompletePackageJson = t.type({
+    version: t.string,
     dependencies: NodeDependencies,
     devDependencies: NodeDependencies,
     peerDependencies: NodeDependencies,
@@ -106,8 +107,12 @@ const convertErorrs = (pathPrefix: string[], additionalMessage?: string) => (err
                     .filter(contextEntry => contextEntry.parentTag !== 'IntersectionType')
                     .map(contextEntry => contextEntry.entry.key)
             ]);
+            const badValue = lastContextEntry.actual;
+            const badValueString = typeof badValue === 'string' ?
+                `string value "${colorize.badValue(badValue)}"` :
+                `value ${colorize.badValue(String(badValue))}`;
             return `\n ${ansicolor.magenta('subject:')} ${colorize.file(CONFIG_FILE_NAME)}${keyPath}${
-                 "\n"}   ${ansicolor.red('error:')} Expected type ${lastContextEntry.type.name} but instead got value "${lastContextEntry.actual}"${additionalMessage ? "\n\n" + additionalMessage : ""}`;
+                 "\n"}   ${ansicolor.red('error:')} expected type ${colorize.type(lastContextEntry.type.name)} but instead got ${badValueString}${additionalMessage ? "\n\n" + additionalMessage : ""}`;
         })()
     }));
 }

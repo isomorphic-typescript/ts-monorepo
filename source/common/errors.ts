@@ -16,14 +16,7 @@ export enum ErrorType {
     JsonParseError = "JsonParseError",
     UnexpectedRuntimeError = "UnexpectedRuntimeError",
     UnexpectedFilesystemObject = "UnexpectedFilesystemObject",
-    // Errors specific to ts-config.json
-    ExplicitRootDirInTSConfigJson = "ExplicitRootDirInTSConfigJson",
-    ExplicitOutDirInTSConfigJson = "ExplicitOutDirInTSConfigJson",
-    ExplicitCompositeInTSConfigJson = "ExplicitCompositeInTSConfigJson",
-    ExplicitDeclarationInTSConfigJson = "ExplicitDeclarationInTSConfigJson",
-    ExplicitDeclarationMapInTSConfigJson = "ExplicitDeclarationMapInTSConfigJson",
-    ExplicitSourceMapInTSConfigJson = "ExplicitSourceMapInTSConfigJson",
-    ExplicitReferencesInTSConfigJson = "ExplicitReferencesInTSConfigJson",
+    ExplicitlySetNonOverridableValueInTSConfigJson = "ExplicitlySetNonOverridableValueInTSConfigJson"
 }
 
 export interface ConfigError {

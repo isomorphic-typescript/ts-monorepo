@@ -9,11 +9,11 @@ export class CommandRunner {
     private killed = false;
 
     public constructor(private readonly command: string) {
-        log.info(`Command started: '${colorize.command(this.command)}'`);
         const [executableName, ...commandArgs] = this.command.split(" ");
         this.commandProcess = child_process.spawn(
             `${executableName}${CommandRunner.OS_IS_WINDOWS ? '.cmd' : ''}`,
             commandArgs, {stdio: 'inherit'});
+        log.info(`Command started on PID ${this.commandProcess.pid}: '${colorize.command(this.command)}'`);
         this.finishedPromise = new Promise(resolve => {
             this.commandProcess
                 .on("error", err => {
@@ -21,10 +21,11 @@ export class CommandRunner {
                     log.error(err.stack || err.message);
                 })
                 .on("exit", (code, signal) => {
-                    const codeMessage = code ? ", with code " + code : "";
-                    const signalMessage = signal ? ", with signal " + signal : "";
+                    const codeMessage = code ? " with code " + code : "";
+                    const signalMessage = signal ? " via " + signal : "";
+                    const doneVerb = (codeMessage.length === 0 && signalMessage.length === 0) ? "finished" : "terminated";
                     
-                    log.info(`Command finished: '${colorize.command(this.command)}'${codeMessage}${signalMessage}.`);
+                    log.info(`Command ${doneVerb}${codeMessage}${signalMessage}: ${colorize.command(this.command)}`);
                     this.killed = true;
                     resolve();
                 });

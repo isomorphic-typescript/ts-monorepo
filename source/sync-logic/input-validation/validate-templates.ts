@@ -37,7 +37,7 @@ export function validateAndMergeTemplates(templates: {[name: string]: t.TypeOf<t
                 templateConfig, 
                 `In the template ${colorize.template(templateName)}`
             )),
-            eitherCoalesceConfigErrors,
+            eitherCoalesceConfigErrors
         ),
         // 2. Ensure all templates which are referenced in template's extends actually exist
         chain(() => pipe(
@@ -47,7 +47,7 @@ export function validateAndMergeTemplates(templates: {[name: string]: t.TypeOf<t
                 arrayMap((templateExtends) => templates[templateExtends] ?
                     right(SUCCESS) : left([{
                         type: ErrorType.NonExistentTemplate,
-                        message: `The template ${colorize.template(templateName)} extends a template named ${colorize.template(templateExtends)}, which does not exist.`
+                        message: `The template ${colorize.template(templateName)} extends non-existent template "${colorize.template(templateExtends)}".`
                     } as ConfigError])
                 ),
                 eitherCoalesceConfigErrors,
