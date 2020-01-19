@@ -9,7 +9,7 @@ import { Success, PACKAGES_DIRECTORY_RELATIVE_PATH, SUCCESS, CONFIG_FILE_NAME } 
 import { pipe } from 'fp-ts/lib/pipeable';
 import { FileSystemObjectType, getFileSystemObjectDescriptor, FileSystemObjectDescriptor } from '../file-system/object';
 import { assertFileSystemObjectType } from '../file-system/presence-assertions';
-import { TSMonorepoJson } from '../config-file-structural-checking/io-ts-trial';
+import { TSMonorepoJson } from '../common/types/io-ts/config-types';
 import { colorize } from '../colorize-special-text';
 import { traversePackageTree, generateInitialContext, nameSegmentToSubFolderName } from './traverse-package-tree';
 import { taskEithercoalesceConfigErrors } from './error-coalesce';

@@ -1,6 +1,6 @@
 import * as chokidar from 'chokidar';
 import { FileSystemObjectDescriptor, getFileSystemObjectDescriptor } from './object';
-import { Terminateable } from '../common/traits';
+import { Terminateable } from '../common/types/traits';
 interface FileWatcherHandlers {
     onExists?: (descriptor: FileSystemObjectDescriptor) => void;
     onChange?: (descriptor: FileSystemObjectDescriptor) => void;

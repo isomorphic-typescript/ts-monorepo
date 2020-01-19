@@ -4,7 +4,7 @@ import * as array from 'fp-ts/lib/Array';
 import { ConfigError, ErrorType } from "../../common/errors";
 import { PACKAGES_DIRECTORY_NAME, Success, SUCCESS } from "../../common/constants";
 import { colorize } from "../../colorize-special-text";
-import { PartialPackageJson, NodeDependency } from '../../config-file-structural-checking/io-ts-trial';
+import { PartialPackageJson, NodeDependency } from '../../common/types/io-ts/config-types';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { eitherCoalesceConfigErrors } from '../error-coalesce';
 

@@ -2,21 +2,21 @@ export enum ErrorType {
     InvalidScope = "InvalidScope",
     InvalidPackageName = "InvalidPackageName",
     InvalidConfig = "InvalidConfig",
-    UndefinedConfig = "UndefinedConfig",
+    InvalidSemanticVersion = "InvalidSemanticVersion",
     FileSystemObjectNotFound = "FileSystemObjectNotFound",
     SubfolderIsEmptyString = "SubfolderIsEmptyString",
     DuplicateSubfolder = "DuplicateSubfolder",
     DuplicateResolvedPackageName = "DuplicateResolvedPackageName",
-    JunctionWithPackageNameSuffix = "JunctionWithPackageNameSuffix",
-    PackageNameMissingSuffix = "PackageNameMissingSuffix",
     NonExistentTemplate = "NonExistentTemplate",
     CircularTemplateDependency = "CircularTemplateDependency",
+    CircularTypeScriptProjectReferenceDependency = "CircularTypeScriptProjectReferenceDependency",
     ExplicitNameInPackageJsonConfig = "ExplicitNameInPackageJsonConfig",
     DuplicateDependencyInPackageJsonConfig = "DuplicateDependencyInPackageJsonConfig",
     JsonParseError = "JsonParseError",
     UnexpectedRuntimeError = "UnexpectedRuntimeError",
     UnexpectedFilesystemObject = "UnexpectedFilesystemObject",
-    ExplicitlySetNonOverridableValueInTSConfigJson = "ExplicitlySetNonOverridableValueInTSConfigJson"
+    ExplicitlySetNonOverridableValueInTSConfigJson = "ExplicitlySetNonOverridableValueInTSConfigJson",
+    UnknownPackageDependency = "UnknownPackageDependency"
 }
 
 export interface ConfigError {

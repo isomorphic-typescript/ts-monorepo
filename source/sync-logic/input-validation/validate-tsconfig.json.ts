@@ -1,11 +1,12 @@
 import * as t from 'io-ts';
 import * as either from 'fp-ts/lib/Either';
 import * as array from 'fp-ts/lib/Array';
-import { PartialTSConfigJson } from '../../config-file-structural-checking/io-ts-trial';
+import { PartialTSConfigJson } from '../../common/types/io-ts/config-types';
 import { ConfigError, ErrorType } from "../../common/errors";
 import { TOOL_NAME, TS_CONFIG_JSON_ROOT_DIR, TS_CONFIG_JSON_OUT_DIR, Success, SUCCESS } from "../../common/constants";
 import { pipe } from 'fp-ts/lib/pipeable';
 import { eitherCoalesceConfigErrors } from '../error-coalesce';
+import { colorize } from '../../colorize-special-text';
 
 export const MandatoryTSConfigJsonValues = {
     compilerOptions: {
@@ -24,7 +25,7 @@ function ensureValueNotSetExplicitly(field: string, compilerOptions: boolean, er
     function generateError(fullFieldName: string): ConfigError {
         return {
             type: errorType,
-            message: `${configLocation} the tsconfig.json config illegally sets the ${fullFieldName} explicitly. ${TOOL_NAME} sets this for you.`
+            message: `${configLocation} the ${colorize.file('tsconfig.json')} config illegally sets field '${fullFieldName}' explicitly. ${colorize.package(TOOL_NAME)} will set this for you.`
         }
     }
     if (compilerOptions) {

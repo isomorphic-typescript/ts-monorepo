@@ -7,7 +7,7 @@ import { assertDirectoryExistsOrCreate } from '../../../file-system/presence-ass
 import { ConfigError } from '../../../common/errors';
 import { TS_CONFIG_JSON_OUT_DIR, TS_CONFIG_JSON_ROOT_DIR, PACKAGE_JSON_FILENAME, TS_CONFIG_JSON_FILENAME, SUCCESS, Success } from '../../../common/constants';
 import * as fs from 'fs';
-import { MonorepoPackageRegistry } from '../../../package-dependencies/monorepo-package-registry';
+import { MonorepoPackageRegistry } from '../../../package-dependency-logic/monorepo-package-registry';
 import { CachedLatestVersionFetcher } from '../../cached-latest-version-fetcher';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import { right } from 'fp-ts/lib/Either';
@@ -30,12 +30,13 @@ export function writeMonorepoPackageFiles(monorepoPackage: MonorepoPackage, mono
             array.map(([jsonFilename, jsonObject]) => {
                 // Write templated config files
                 const pathToFile = path.join(monorepoPackage.relativePath, jsonFilename);
-                const outputObject = 
+                const outputObjectTaskEither = 
                     jsonFilename === PACKAGE_JSON_FILENAME ? monorepoPackageToPackageJsonOutput(monorepoPackage, monorepoPackageRegistry, latestVersionGetter) :
-                    jsonFilename === TS_CONFIG_JSON_FILENAME ? monorepoPakcageToTSConfigJsonOutput(monorepoPackage) :
-                    jsonObject;
+                    jsonFilename === TS_CONFIG_JSON_FILENAME ? taskEither.right(monorepoPakcageToTSConfigJsonOutput(monorepoPackage)) :
+                    taskEither.right(jsonObject);
                 return pipe(
-                    writeJsonAndReportChanges(pathToFile, outputObject),
+                    outputObjectTaskEither,
+                    taskEither.chain(outputObject => writeJsonAndReportChanges(pathToFile, outputObject)),
                     taskEither.chain(outputJsonString => async () => {
                         // By default we copy package.json over to the build folder, for other files, the user will need to explicitly set this in the config.
                         if (jsonFilename === PACKAGE_JSON_FILENAME) {

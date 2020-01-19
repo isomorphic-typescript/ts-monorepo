@@ -1,7 +1,8 @@
 import * as path from 'path';
-import { MonorepoPackageRegistry } from "../../../../package-dependencies/monorepo-package-registry";
+import { MonorepoPackageRegistry } from "../../../../package-dependency-logic/monorepo-package-registry";
 import { TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_ABSOLUTE_PATH } from '../../../../common/constants';
 
+// TODO: how can we handle circular references? Should we before the following is solved? https://github.com/microsoft/TypeScript/issues/33685
 export function monorepoPackageRegistryToTSProjectLeavesJsonOutput(monorepoPackageRegistry: MonorepoPackageRegistry): Object {
     return {
         files: [],

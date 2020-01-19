@@ -4,7 +4,7 @@ import { validatePackageJson } from "./validate-package.json";
 import { validateTSConfigJson } from "./validate-tsconfig.json";
 import * as either from "fp-ts/lib/Either";
 import { Success, SUCCESS } from "../../common/constants";
-import { PackageConfig } from '../../config-file-structural-checking/io-ts-trial';
+import { PackageConfig } from '../../common/types/io-ts/config-types';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { eitherCoalesceConfigErrors } from '../error-coalesce';
 

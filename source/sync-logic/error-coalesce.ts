@@ -28,6 +28,31 @@ export const taskEithercoalesceConfigErrors = <T>(results: TaskEither<ConfigErro
     );
 }
 
+export const taskEitherCoalesceConfigErrorsAndObject = <T>(results: TaskEither<ConfigError[], T>[]): TaskEither<ConfigError[], T[]> => {
+    return pipe(
+        results,
+        reduce(teRight([] as T[]), (accumulatorTaskEither, currentTaskEither) => pipe(
+            currentTaskEither,
+            teFold(
+                currentErrors => pipe(
+                    accumulatorTaskEither,
+                    teFold(
+                        accumulationErrors => teLeft([...currentErrors, ...accumulationErrors]),
+                        () => teLeft(currentErrors)
+                    )
+                ),
+                currentValues => pipe(
+                    accumulatorTaskEither,
+                    teFold(
+                        teLeft,
+                        accumulationValues => teRight([...accumulationValues, currentValues])
+                    )
+                )
+            )
+        ))
+    );
+}
+
 export const eitherCoalesceConfigErrors = <T>(results: Either<ConfigError[], T>[]): Either<ConfigError[], Success> => {
     return pipe(
         results,
@@ -46,5 +71,31 @@ export const eitherCoalesceConfigErrors = <T>(results: Either<ConfigError[], T>[
                 )
             );
         })
+    );
+}
+
+// TODO: only use this form.
+export const eitherCoalesceConfigErrorsAndObject = <T>(results: Either<ConfigError[], T>[]): Either<ConfigError[], T[]> => {
+    return pipe(
+        results,
+        reduce(eRight([] as T[]), (accumulatorEither, currentEither) => pipe(
+            currentEither,
+            eFold(
+                currentErrors => pipe(
+                    accumulatorEither,
+                    eFold(
+                        accumulationErrors => eLeft([...currentErrors, ...accumulationErrors]),
+                        () => eLeft(currentErrors)
+                    )
+                ),
+                currentValues => pipe(
+                    accumulatorEither,
+                    eFold(
+                        eLeft,
+                        accumulationValues => eRight([...accumulationValues, currentValues])
+                    )
+                )
+            )
+        ))
     );
 }

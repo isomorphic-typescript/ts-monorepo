@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { CompletePackageJson } from '../../config-file-structural-checking/io-ts-trial';
+import { CompletePackageJson } from './io-ts/config-types';
 import { MandatoryTSConfigJsonValues } from '../../sync-logic/input-validation/validate-tsconfig.json';
 
 export type MergedPackageJson = t.TypeOf<typeof CompletePackageJson> & {

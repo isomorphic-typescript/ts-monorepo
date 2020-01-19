@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import "source-map-support/register";
-import { log } from './util/log';
-import { restartProgram } from './util/restart-program';
+import { log } from './logging/log';
+import { restartProgram } from './process/restart-program';
 import { syncMonorepo } from './sync-logic/sync-monorepo';
 import { watch } from "./file-system/watcher";
 import { CONFIG_FILE_NAME, CONFIG_FILE_ABSOLUTE_PATH, TOOL_NAME } from './common/constants';
 import { colorize } from "./colorize-special-text";
-import { Terminateable } from "./common/traits";
+import { Terminateable } from "./common/types/traits";
 import { tryCatch } from 'fp-ts/lib/TaskEither';
 import { flatten, fold } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';

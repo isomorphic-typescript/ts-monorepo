@@ -6,8 +6,7 @@ import * as t from 'io-ts';
 import * as array from 'fp-ts/lib/Array';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { taskEithercoalesceConfigErrors } from './error-coalesce';
-import { validatePackageConfig, PackageConfig, JunctionConfig, validateJunctionConfig } from '../config-file-structural-checking/io-ts-trial';
-import ansicolor = require('ansicolor');
+import { validatePackageConfig, PackageConfig, JunctionConfig, validateJunctionConfig } from '../common/types/io-ts/config-types';
 
 const lowercaseAlphanumeric = /[a-z0-9]/;
 function removeLeadingPunctuation(packageNameSegment: string): string {
@@ -43,10 +42,6 @@ export function generateInitialContext(scope: string) {
 
 function resolvePackageNameFromContext(context: ConfigTreeTraversalContext) {
     return context.packageNamePrefix.substring(0, context.packageNamePrefix.length - PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX.length);
-}
-
-export function constructPresentableConfigObjectPath(configObjectPath: string[]): string {
-    return configObjectPath.map(key => `${ansicolor.lightYellow('[')+ansicolor.lightCyan(key)+ansicolor.lightYellow(']')}`).join("");
 }
 
 export function traversePackageTree(

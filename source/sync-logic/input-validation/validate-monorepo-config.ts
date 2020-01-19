@@ -1,7 +1,7 @@
-import { MonorepoPackageRegistry } from "../../package-dependencies/monorepo-package-registry";
+import { MonorepoPackageRegistry } from "../../package-dependency-logic/monorepo-package-registry";
 import { ConfigError, ErrorType } from "../../common/errors";
 import { validateScope } from "./validate-scope";
-import { traversePackageTree, generateInitialContext, ConfigTreeTraversalContext, constructPresentableConfigObjectPath } from "../traverse-package-tree";
+import { traversePackageTree, generateInitialContext, ConfigTreeTraversalContext } from "../traverse-package-tree";
 import { validateAndMergeTemplates } from "./validate-templates";
 import { colorize } from "../../colorize-special-text";
 import { mergePackageConfig } from "../converters/input-to-merged/package-config";
@@ -16,7 +16,8 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as array from 'fp-ts/lib/Array';
 import { taskEithercoalesceConfigErrors } from "../error-coalesce";
 import { MergedPackageConfig } from "../../common/types/merged-config";
-import { TSMonorepoJson, PackageConfig, JunctionConfig } from "../../config-file-structural-checking/io-ts-trial";
+import { TSMonorepoJson, PackageConfig, JunctionConfig } from "../../common/types/io-ts/config-types";
+import { constructPresentableConfigObjectPath } from "../../common/console-formatters/config-path";
 
 const validatePackage = 
     (monorepoConfig: t.TypeOf<typeof TSMonorepoJson>, seenResolvedPackageNamesToConfigObjectPath: Map<string, string[]>, templates: Map<string, MergedPackageConfig>, packageRegistry: MonorepoPackageRegistry) => 
@@ -105,14 +106,40 @@ const validateJunction =
     );
 }
 
+// See https://blog.npmjs.org/post/168978377570/new-package-moniker-rules
+function ensureNoPackagesEquivalenGivenMonikerRule(packageRegistry: MonorepoPackageRegistry): either.Either<ConfigError[], Success> {
+    return pipe(
+        Array.from(packageRegistry.getRegisteredPackages().values()),
+        array.map(monorepoPackage => monorepoPackage.name),
+        array.reduce(either.right<ConfigError[], Map<string, string>>(new Map()), (result, currentMonorepoPackageName) => pipe(
+            result,
+            either.chain(seenPackageNamesWithoutPunctuation => {
+                const currentMonorepoPackageNameSplitByScopeDivider = currentMonorepoPackageName.split('/');
+                const currentMonorepoPackageNameWithoutScope = currentMonorepoPackageNameSplitByScopeDivider[currentMonorepoPackageNameSplitByScopeDivider.length - 1];
+                const currentMonorepoPackageNameWithoutPunctuation = currentMonorepoPackageNameWithoutScope.replace(/[^a-zA-Z\d]/g, '');
+                const otherPackageNameWithEquivalentPunctionRemovedName = seenPackageNamesWithoutPunctuation.get(currentMonorepoPackageNameWithoutPunctuation);
+                if (otherPackageNameWithEquivalentPunctionRemovedName !== undefined) {
+                    return either.left([{
+                        type: ErrorType.DuplicateResolvedPackageName,
+                        message: `Two packages:\n1. ${colorize.package(otherPackageNameWithEquivalentPunctionRemovedName)}\n2. ${colorize.package(currentMonorepoPackageName)
+                        }\nhave the same package name ${colorize.package(currentMonorepoPackageNameWithoutPunctuation)} after removing punction & scope.${
+                            "\n"}This is denied by npm. See https://blog.npmjs.org/post/168978377570/new-package-moniker-rules`
+                    } as ConfigError]);
+                } else {
+                    seenPackageNamesWithoutPunctuation.set(currentMonorepoPackageNameWithoutPunctuation, currentMonorepoPackageName);
+                    return either.right(seenPackageNamesWithoutPunctuation);
+                }
+            })
+        )),
+        either.map(() => SUCCESS)
+    )
+}
+
 export function validateMonorepoConfig(monorepoConfig: t.TypeOf<typeof TSMonorepoJson>, packageRegistry: MonorepoPackageRegistry): taskEither.TaskEither<ConfigError[], Success> {
     return pipe(
         option.fromNullable(monorepoConfig.templates),
         either.fromOption(() => new Map()),
-        either.fold(
-            either.right,
-            validateAndMergeTemplates
-        ),
+        either.fold(either.right, validateAndMergeTemplates),
         taskEither.fromEither,
         taskEither.chain(mergedTemplates => pipe(
             option.fromNullable(monorepoConfig.packages),
@@ -136,6 +163,11 @@ export function validateMonorepoConfig(monorepoConfig: t.TypeOf<typeof TSMonorep
                     taskEithercoalesceConfigErrors
                 )
             )
+        )),
+        taskEither.chain(() => pipe(
+            ensureNoPackagesEquivalenGivenMonikerRule(packageRegistry),
+            either.chain(packageRegistry.ensureNoCircularDependencies.bind(packageRegistry)),
+            taskEither.fromEither
         ))
     );
 }

@@ -3,20 +3,28 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as either from 'fp-ts/lib/Either';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as option from 'fp-ts/lib/Option';
-import { SUCCESS, Success, PACKAGES_DIRECTORY_NAME, PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX, CONFIG_FILE_NAME } from '../common/constants';
+import { SUCCESS, Success, PACKAGES_DIRECTORY_NAME, PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX } from '../../constants';
 import * as array from 'fp-ts/lib/Array';
-import { ConfigError, ErrorType } from '../common/errors';
-import { taskEithercoalesceConfigErrors } from '../sync-logic/error-coalesce';
-import { traversePackageTree, generateInitialContext, constructPresentableConfigObjectPath } from '../sync-logic/traverse-package-tree';
-import { colorize } from '../colorize-special-text';
-import * as ansicolor from 'ansicolor';
+import { ConfigError } from '../../errors';
+import { taskEithercoalesceConfigErrors } from '../../../sync-logic/error-coalesce';
+import { traversePackageTree, generateInitialContext } from '../../../sync-logic/traverse-package-tree';
+import * as semver from 'semver';
+import { customType } from './custom-type-helpers';
+import { convertErorrs } from './convert-errors';
 
-const NodeDependencyVersioned = t.tuple([t.string, t.string]);
-const NodeDependencyUnversioned = t.string;
-export const NodeDependency = t.union([NodeDependencyUnversioned, NodeDependencyVersioned]);
+export const SemanticVersion = customType(
+    'SemanticVersion',
+    (input): input is string => typeof input === 'string' && semver.valid(input) === input
+);
+
+export const NodeDependency = customType(
+    'TSMonorepoNodeDependency = string | [string, string]',
+    (input): input is string | [string, string] => typeof input === 'string' || (Array.isArray(input) && input.length === 2)
+);
+
 const NodeDependencies = t.array(NodeDependency);
 export const CompletePackageJson = t.type({
-    version: t.string,
+    version: SemanticVersion,
     dependencies: NodeDependencies,
     devDependencies: NodeDependencies,
     peerDependencies: NodeDependencies,
@@ -64,7 +72,7 @@ export const JunctionConfig = t.record(
 
 export const TSMonorepoJson = t.intersection([
     t.type({
-        version: t.string,
+        version: SemanticVersion,
         ttypescript: t.boolean,
         cleanBeforeCompile: t.boolean,
     }),
@@ -86,36 +94,7 @@ export const validateJunctionConfig = (configPath: string[]) => (input: unknown)
     either.mapLeft(convertErorrs(configPath, configPath[0] === PACKAGES_DIRECTORY_NAME && configPath.length > 2 ? packageConfigExplanation : undefined))
 );
 
-const convertErorrs = (pathPrefix: string[], additionalMessage?: string) => (errors: t.Errors): ConfigError[] => {
-    return errors.map(error => ({
-        type: ErrorType.InvalidConfig,
-        message: (() => {
-            const lastContextEntry = error.context[error.context.length - 1];
-            var priorContextEntry: t.ContextEntry | undefined = undefined;
-            const contextWithParentTags: {parentTag: string | undefined, entry: t.ContextEntry}[] = [];
-            for (var i = 0; i < error.context.length; ++i) {
-                contextWithParentTags[i] = {
-                    parentTag: (priorContextEntry?.type as any)?._tag,
-                    entry: error.context[i]
-                };
-                priorContextEntry = error.context[i];
-            }
-            const keyPath = constructPresentableConfigObjectPath([
-                ...pathPrefix,
-                ...contextWithParentTags
-                    .slice(1)
-                    .filter(contextEntry => contextEntry.parentTag !== 'IntersectionType')
-                    .map(contextEntry => contextEntry.entry.key)
-            ]);
-            const badValue = lastContextEntry.actual;
-            const badValueString = typeof badValue === 'string' ?
-                `string value "${colorize.badValue(badValue)}"` :
-                `value ${colorize.badValue(String(badValue))}`;
-            return `\n ${ansicolor.magenta('subject:')} ${colorize.file(CONFIG_FILE_NAME)}${keyPath}${
-                 "\n"}   ${ansicolor.red('error:')} expected type ${colorize.type(lastContextEntry.type.name)} but instead got ${badValueString}${additionalMessage ? "\n\n" + additionalMessage : ""}`;
-        })()
-    }));
-}
+
 
 export function validateTSMonoRepoJsonShape(input: Object): taskEither.TaskEither<ConfigError[], t.TypeOf<typeof TSMonorepoJson>> {
     return pipe(

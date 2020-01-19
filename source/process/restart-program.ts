@@ -1,4 +1,4 @@
-import { log } from './log';
+import { log } from '../logging/log';
 
 var restarting = false;
 export async function restartProgram(idempotentPreRestartFn: () => Promise<void> | undefined) {

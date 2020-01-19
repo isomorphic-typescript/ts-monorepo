@@ -1,5 +1,5 @@
 import * as child_process from 'child_process';
-import { log } from './log';
+import { log } from '../logging/log';
 import { colorize } from '../colorize-special-text';
 
 export class CommandRunner {

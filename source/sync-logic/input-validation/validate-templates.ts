@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { PackageConfig } from '../../config-file-structural-checking/io-ts-trial';
+import { PackageConfig } from '../../common/types/io-ts/config-types';
 import { MergedPackageConfig } from "../../common/types/merged-config";
 import { ConfigError, ErrorType } from "../../common/errors";
 import { colorize } from "../../colorize-special-text";
@@ -66,7 +66,7 @@ export function validateAndMergeTemplates(templates: {[name: string]: t.TypeOf<t
             for (var currentTemplateEntry = templateEntries.shift(); currentTemplateEntry !== undefined; currentTemplateEntry = templateEntries.shift()) {
                 const [templateName, templateConfig] = currentTemplateEntry;
                 // If all dependencies are in the merged map already.
-                if (templateConfig.extends.filter(mergedTemplatesMap.has).length === templateConfig.extends.length) {
+                if (templateConfig.extends.filter(mergedTemplatesMap.has.bind(mergedTemplatesMap)).length === templateConfig.extends.length) {
                     mergedTemplatesMap.set(templateName,mergePackageConfig(mergedTemplatesMap, templateConfig));
                 } else {
                     templateEntries.push(currentTemplateEntry);

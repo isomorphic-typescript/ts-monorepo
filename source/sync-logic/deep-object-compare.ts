@@ -22,10 +22,10 @@ export function deepComparison(oldObj: any, newObj: any, keyChain: string): stri
     }
     function explainDifference(field: string, newValue?: JSONPrimitive, oldValue?: JSONPrimitive) {
         const action = 
-            newValue === undefined ? "Remove" :
-            oldValue === undefined ? "   Add" :
-                                     "Change";
-        differences.push(`${action} ${keyChain}[${ansicolor.white(field)}]:${representation(ansicolor.lightMagenta, oldValue)}${representation(ansicolor.lightGreen, newValue)}`);
+            newValue === undefined ? "removing" :
+            oldValue === undefined ? "  adding" :
+                                     "changing";
+        differences.push(`    ${action} ${keyChain}[${ansicolor.white(field)}]:${representation(ansicolor.lightMagenta, oldValue)}${representation(ansicolor.lightGreen, newValue)}`);
     }
     fields.forEach(field => {
         const oldField = oldObj[field];

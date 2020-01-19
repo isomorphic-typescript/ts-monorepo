@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { log } from '../../util/log';
+import { log } from '../../logging/log';
 
 import { deepComparison } from '../deep-object-compare';
 import { ConfigError } from '../../common/errors';
@@ -34,12 +34,14 @@ export function writeJsonAndReportChanges(relativePath: string, outputObject: Ob
                 if (!parseFailed && currentObject !== undefined) {
                     const differences = deepComparison(currentObject, outputObject, "");
                     if (differences.length > 0) {
-                        log.trace(`modifying ${colorize.file(relativePath)}`);
+                        log.trace(`modifying file ${colorize.file(relativePath)}`);
                     }
                     differences.forEach(explanation => {
                         log.info(explanation);
                     });
                 }
+            } else if (descriptor.type === FileSystemObjectType.nothing) {
+                log.info(`creating file ${colorize.file(relativePath)}`);
             }
             try {
                 await fs.promises.writeFile(absolutePath, outputJSONString);
