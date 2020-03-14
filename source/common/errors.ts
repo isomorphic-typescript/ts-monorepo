@@ -3,6 +3,7 @@ export enum ErrorType {
     InvalidPackageName = "InvalidPackageName",
     InvalidConfig = "InvalidConfig",
     InvalidSemanticVersion = "InvalidSemanticVersion",
+    InvalidDependencyVersion = "InvalidDependencyVersion",
     FileSystemObjectNotFound = "FileSystemObjectNotFound",
     SubfolderIsEmptyString = "SubfolderIsEmptyString",
     DuplicateSubfolder = "DuplicateSubfolder",

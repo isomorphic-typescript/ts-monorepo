@@ -75,6 +75,7 @@ export const TSMonorepoJson = t.intersection([
         version: SemanticVersion,
         ttypescript: t.boolean,
         cleanBeforeCompile: t.boolean,
+        port: t.Int
     }),
     t.partial({
         templates: t.record(t.string, PackageConfig),

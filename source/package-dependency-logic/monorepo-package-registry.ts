@@ -58,7 +58,6 @@ export class MonorepoPackageRegistry {
         this.resolveMonorepoDependencies();
         return new Set(this.packages.values());
     }
-
     public ensureNoCircularDependencies(): either.Either<ConfigError[], Success> {
         this.resolveMonorepoDependencies();
         // TODO: find way to support typescript project reference circular dependency since Node supports this.
