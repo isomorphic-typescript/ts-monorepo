@@ -1,4 +1,14 @@
 tsconfig.tsbuildinfo
 package-lock.json
-node_modules/
-distribution/
+.yarn
+.yarnrc.yml
+yarn.lock
+.pnp.js
+.vscode
+dist-experiment/
+.ts-monorepo
+build/
+tsconfig.json
+package.json
+!dist-safe/package.json
+bundle/

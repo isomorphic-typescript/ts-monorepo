@@ -20,7 +20,10 @@
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
-        "outDir": "./distribution",
-        "rootDir": "./source"
-    }
+        "outDir": "./dist-experiment",
+        "rootDir": "./packages/@isomorphic-typescript/ts-monorepo~/source",
+    },
+    "include": [
+        "./packages/@isomorphic-typescript/ts-monorepo~/source/**/*",
+    ]
 }

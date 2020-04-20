@@ -1,98 +1,26 @@
+This is a tool which watches a configuration file named `ts-monorepo.json` which resides in the project root.
+
+The file represents a centralized place to store [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) configuration details about all the npm packages within your typescript monorepo.
+
 # How do I use it?
 
-Install it:<br />
-`npm i -D @isomorphic-typescript/ts-monorepo`
+Install it (Yarn Required):<br />
+- `yarn set version berry`
+- `yarn add -D @isomorphic-typescript/ts-monorepo`
+- `yarn ts-monorepo`
 
-Run it:<br />
-`npx ts-monorepo`
+# VSCode doesn't understand my types!
+
+This is because ts-monorepo uses Yarn v2 (Berry), which uses Plug-n-Play
+
+- `yarn add -D typescript`
+- `yarn add -D @yarnpkg/pnpify`
+- `yarn pnpify --sdk`
+- In bottom right corner of VSCode click on the version, switch to pnpify version.
 
 # What is it?
 
-This is a tool which watches a configuration file named `ts-monorepo.json` which resides in the project root and has the following format:
-
-```jsonc
-{
-    // Note the ts-monorepo.json supports both line and
-    /*
-        block comments.
-    */
-    "packageRoot": "packages",
-    "version": "0.1.2",
-    "ttypescript": true, // This allows you to use ttypescript rather than normal typescript for compiling. I use ttypescript for the nameof library.
-    "cleanBeforeCompile": true, // This means whenever the config file changes, lerna clean will run and all incremental compilation info will be deleted.
-                                // Useful if you want to reset after corrupting some compilation or corrupting the node_modules. Downside is slower tool restart time.
-    "baseConfigs": {
-        "package.json": {
-            "author": "Alexander Leung",
-            "license": "MIT",
-            "devDependencies": [
-                "ts-nameof"
-            ]
-        },
-        "tsconfig.json": {
-            "compilerOptions": {
-                "module": "commonjs",
-                "target": "es6",
-                "lib": ["esnext"],
-                "types": ["ts-nameof"],
-                "strict": true,
-                "rootDir": "./source",
-                "outDir": "./distribution",
-                /* https://github.com/cevek/ttypescript */
-                "plugins": [
-                    {
-                        "transform": "ts-nameof",
-                        "type": "raw"
-                    }
-                ]
-            }
-        }
-    },
-    "packages": {
-        "project1": {
-            "publishDistributionFolder": false,
-            "configs": {
-                "package.json": {
-                    "files": ["distribution"],
-                    "main": "./distribution/package.js",
-                    "description": "some package for node",
-                    "scripts": {
-                        "custom": "project2-command input"
-                    },
-                    "dependencies": [
-                        "@types/node"
-                    ],
-                    "devDependencies": [
-                        "@somescope/project2"
-                    ]
-                },
-                "tsconfig.json": {
-                    "types": ["node"]
-                }
-            }
-        },
-        "@somescope/project2": {
-            "publishDistributionFolder": true,
-            "configs": {
-                "package.json": {
-                    "description": "some command line tool for node",
-                    "bin": {
-                        "project2-command": "./distribution/project2-command.js"
-                    },
-                    "devDependencies": [
-                        "@types/node"
-                    ]
-                },
-                "tsconfig.json": {
-                    "types": ["node"]
-                }
-            }
-        }
-    }
-}
-```
-
-The file represents a centralized place to store [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) configuration details about all the npm packages within your typescript monorepo. Upon change detection of the config file, this tool will
+Upon change detection of `ts-monorepo.json`, this tool will
 1. Validate the config and proceed [iff](https://en.wikipedia.org/wiki/If_and_only_ifs) valid.
 1. Create package folder, required parent folder(s), package.json, & tsconfig.json files if any of these are missing.
 1. Update the existing config files if they were already present.
@@ -100,6 +28,21 @@ The file represents a centralized place to store [DRY](https://en.wikipedia.org/
 1. Update `lerna.json` to reference all your packages.
 1. Run `lerna bootstrap` to setup correct linkages between packages and install all their npm dependencies
 1. Restart a `tsc -b --watch` process that builds all packages referenced in `tsconfig-leaves.json` incrementally, therefore building all the packages in correct order.
+
+## PackageConfig
+
+```typescript
+interface PackageConfig {
+    extends: string[];
+    files?: {
+        json: JsonConfigs;
+    },
+    bundle?: {
+        hot: boolean;
+        entries: string[];
+    }
+}
+```
 
 The generated tsconfig.json and package.json files from this tool in each package directory are a [deepmerge](https://www.npmjs.com/package/deepmerge) of the baseConfig object and config object of individual project, with 2 major caveats to this rule: 
 

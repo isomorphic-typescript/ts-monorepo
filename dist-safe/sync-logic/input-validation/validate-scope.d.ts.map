@@ -1,0 +1,1 @@
+{"version":3,"file":"validate-scope.d.ts","sourceRoot":"","sources":["../../../source/sync-logic/input-validation/validate-scope.ts"],"names":[],"mappings":"AACA,OAAO,EAAqB,OAAO,EAAsD,MAAM,wBAAwB,CAAC;AAExH,OAAO,EAAE,WAAW,EAAa,MAAM,qBAAqB,CAAC;AAC7D,OAAO,EAAE,MAAM,EAAe,MAAM,kBAAkB,CAAC;AAEvD,wBAAgB,aAAa,CAAC,KAAK,EAAE,MAAM,GAAG,MAAM,CAAC,WAAW,EAAE,EAAE,OAAO,CAAC,CAc3E"}

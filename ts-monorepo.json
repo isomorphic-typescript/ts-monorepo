@@ -1,0 +1,84 @@
+{
+    "version": "1.0.0",
+    "ttypescript": false,
+    "port": 3000,
+    "packages": {
+        "@isomorphic-typescript": {
+            "ts-monorepo~": {
+                "extends": [],
+                "files": {
+                    "json": {
+                        "package.json": {
+                            "author": "Alexander Leung",
+                            "license": "MIT",
+                            "description": "Yarn plugin for maintaining typescript monorepos",
+                            "repository": {
+                                "type": "git",
+                                "url": "https://github.com/isomorphic-typescript/ts-monorepo.git"
+                            },
+                            "bin": "./build/ts-monorepo.js",
+                            "devDependencies": [
+                                "@types/node",
+                                "@types/comment-json",
+                                "@types/express",
+                                "@types/semver",
+                                "@types/webpack"
+                            ],
+                            "dependencies": [
+                                "ansicolor",
+                                "chokidar",
+                                "comment-json",
+                                "deepmerge",
+                                "express",
+                                "fp-ts",
+                                "io-ts",
+                                "latest-version",
+                                "semver",
+                                "source-map-support",
+                                ["webpack", "next"],
+                                "validate-npm-package-name",
+                                "ttypescript"
+                            ],
+                            "peerDependencies": [
+                                "typescript"
+                            ],
+                            "keywords": [
+                                "typescript",
+                                "lerna",
+                                "yarn",
+                                "berry",
+                                "webpack",
+                                "monorepo",
+                                "project",
+                                "references",
+                                "tsconfig",
+                                "tsconfig.json",
+                                "json",
+                                "incremental",
+                                "package.json"
+                            ]
+                        },
+                        "tsconfig.json": {
+                            "compilerOptions": {
+                                "module": "commonjs", /* need to use this if targetting es6. Not needed when targetting es5 */
+                                "target": "es6",
+                                
+                                /* Type Definitions */
+                                "lib": ["esnext"],
+                                "types": ["node"],
+                        
+                                /* Code Quality */
+                                "forceConsistentCasingInFileNames": true,
+                                "noImplicitReturns": true,
+                                "noUnusedLocals": true,
+                                "noUnusedParameters": true,
+                                "strict": true, // noImplicitAny noImplicitThis alwaysStrict strictBindCallApply strictFunctionTypes strictPropertyInitialization strictNullChecks
+                                "stripInternal": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
