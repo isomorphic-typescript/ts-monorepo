@@ -27,6 +27,5 @@ export declare class MonorepoPackageRegistry {
      * 2. Provided version value is undefined or version of package in registry "satisfies" provided defined version value according to semver.
      */
     getMonorepoPackageIfCompatibleAndPresent(reference: t.TypeOf<typeof NodeDependency>): option.Option<MonorepoPackage>;
-    private md5Hash;
 }
 //# sourceMappingURL=monorepo-package-registry.d.ts.map

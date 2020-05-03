@@ -18,7 +18,8 @@ export declare enum ErrorType {
     UnexpectedFilesystemObject = "UnexpectedFilesystemObject",
     ExplicitlySetNonOverridableValueInTSConfigJson = "ExplicitlySetNonOverridableValueInTSConfigJson",
     UnknownPackageDependency = "UnknownPackageDependency",
-    NoLeafPackages = "NoLeafPackages"
+    NoLeafPackages = "NoLeafPackages",
+    ToolFileIsNotInDevEnv = "ToolFileIsNotInDevEnv"
 }
 export interface ConfigError {
     type: ErrorType;

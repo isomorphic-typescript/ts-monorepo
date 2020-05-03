@@ -1,65 +1,65 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const log_1 = require("../logging/log");
-const colorize_special_text_1 = require("../colorize-special-text");
-const fs = require("fs");
-const path = require("path");
+/*
+import * as webpack from 'webpack';
+import { log } from "../logging/log";
+import { colorize } from "../colorize-special-text";
+import * as fs from 'fs';
+import * as path from 'path';
+
 const AUDIT_TAP_NAME = "AUDIT TAPPER";
+
 //let remaining = 1;
+
 // Go to https://www.planttext.com/ to visualize output
 const FILE_PATH = path.resolve(`./bundle/build-at-${Date.now()}.txt`);
-const appendQueue = [];
-function append(line) {
-    function write(outStream) {
+const appendQueue: string[] = [];
+function append(line: string) {
+    function write(outStream: fs.WriteStream) {
         const lineToWrite = appendQueue[0];
         outStream.write(lineToWrite + "\n", error => {
             if (error) {
-                log_1.log.error("unable to write line: " + lineToWrite);
+                log.error("unable to write line: " + lineToWrite);
             }
             appendQueue.shift();
             if (appendQueue.length > 0) {
                 write(outStream);
-            }
-            else {
+            } else {
                 outStream.end();
             }
         });
     }
     appendQueue.push(line);
     if (appendQueue.length === 1) {
-        const outStream = fs.createWriteStream(FILE_PATH, { flags: 'a' });
+        const outStream = fs.createWriteStream(FILE_PATH, {flags: 'a'});
         write(outStream);
     }
 }
-function init() {
+export function init() {
     append("@startuml");
     append("digraph ABC {");
 }
-exports.init = init;
-function close() {
+export function close() {
     append("}");
     append("@enduml");
 }
-exports.close = close;
-function appendModule(module, bad) {
+export function appendModule(module: webpack.Module, bad: boolean) {
     const { debugId, request, rawRequest, userRequest } = module;
-    append(`  m${debugId} [label="{req ${request} | raw ${rawRequest} | user ${userRequest}}"${bad ? ` fillcolor=red` : ""}]`);
+    append(`  m${debugId} [label="{req ${request} | raw ${rawRequest} | user ${userRequest}}"${bad ? ` fillcolor=red`: ""}]`);
 }
-exports.appendModule = appendModule;
-function appendRelationship(sourceModule, destModule, dependency) {
+export function appendRelationship(sourceModule: NormalModule, destModule: NormalModule, dependency: ModuleDependency) {
     append(`  m${sourceModule.debugId} -> m${destModule.debugId} [label="${dependency.type}"]`);
 }
-exports.appendRelationship = appendRelationship;
-function setUpAudit(compiler) {
-    init;
-    appendModule;
-    appendRelationship;
+
+export function setUpAudit(compiler: webpack.Compiler) {
+    init
+    appendModule
+    appendRelationship
     //init();
     compiler.hooks.compilation.tap(AUDIT_TAP_NAME, (compilation, _normalModuleFactory) => {
-        log_1.log.trace('compiler.compilation');
-        compilation;
-        colorize_special_text_1.colorize;
-        let thing = null;
+        log.trace('compiler.compilation');
+        compilation
+        colorize
+        let thing: ModuleGraphConnection = null as any;
         thing;
         // before module is built.
         /*
@@ -136,12 +136,12 @@ function setUpAudit(compiler) {
             log.info('total modules = ' + modules.length);
             log.info('total records = ' + records.length);
         });
-        */
     });
+
     compiler.hooks.done.tap(AUDIT_TAP_NAME, _stats => {
         //append("}");
         //append("@enduml");
-    });
+    })
 }
-exports.setUpAudit = setUpAudit;
+*/ 
 //# sourceMappingURL=webpack-audit-hooks.js.map

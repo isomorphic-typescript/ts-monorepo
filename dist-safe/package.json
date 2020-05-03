@@ -11,21 +11,21 @@
   "devDependencies": {
     "@types/comment-json": "1.1.1",
     "@types/express": "4.17.6",
-    "@types/node": "13.13.0",
-    "@types/semver": "7.1.0",
-    "@types/webpack": "4.41.12"
+    "@types/json-schema": "7.0.4",
+    "@types/node": "13.13.4",
+    "@types/semver": "7.1.0"
   },
   "dependencies": {
     "ansicolor": "1.1.93",
-    "chokidar": "3.3.1",
+    "chokidar": "3.4.0",
     "comment-json": "3.0.2",
     "deepmerge": "4.2.2",
     "express": "4.17.1",
-    "fp-ts": "2.5.3",
-    "io-ts": "2.2.0",
+    "fp-ts": "2.5.4",
+    "io-ts": "2.2.1",
     "latest-version": "5.1.0",
     "semver": "7.3.2",
-    "source-map-support": "0.5.17",
+    "source-map-support": "0.5.19",
     "ttypescript": "1.5.10",
     "validate-npm-package-name": "3.0.0",
     "webpack": "next"
@@ -48,7 +48,7 @@
     "incremental",
     "package.json"
   ],
-  "name": "dist-safe",
+  "name": "@isomorphic-typescript/ts-monorepo",
   "installConfig": {
     "pnp": true
   },

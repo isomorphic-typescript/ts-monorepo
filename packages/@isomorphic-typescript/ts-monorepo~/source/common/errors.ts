@@ -18,7 +18,8 @@ export enum ErrorType {
     UnexpectedFilesystemObject = "UnexpectedFilesystemObject",
     ExplicitlySetNonOverridableValueInTSConfigJson = "ExplicitlySetNonOverridableValueInTSConfigJson",
     UnknownPackageDependency = "UnknownPackageDependency",
-    NoLeafPackages = "NoLeafPackages"
+    NoLeafPackages = "NoLeafPackages",
+    ToolFileIsNotInDevEnv = "ToolFileIsNotInDevEnv" // Used to detect whether tool should be reloaded upon change. TODO: remove once skoville is utilized.
 }
 
 export interface ConfigError {

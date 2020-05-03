@@ -22,5 +22,6 @@ var ErrorType;
     ErrorType["ExplicitlySetNonOverridableValueInTSConfigJson"] = "ExplicitlySetNonOverridableValueInTSConfigJson";
     ErrorType["UnknownPackageDependency"] = "UnknownPackageDependency";
     ErrorType["NoLeafPackages"] = "NoLeafPackages";
+    ErrorType["ToolFileIsNotInDevEnv"] = "ToolFileIsNotInDevEnv"; // Used to detect whether tool should be reloaded upon change. TODO: remove once skoville is utilized.
 })(ErrorType = exports.ErrorType || (exports.ErrorType = {}));
 //# sourceMappingURL=errors.js.map

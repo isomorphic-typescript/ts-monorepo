@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 exports.PACKAGE_JSON_FILENAME = "package.json";
-exports.TOOL_PACKAGE_JSON = require(`../../${exports.PACKAGE_JSON_FILENAME}`);
+exports.TOOL_PACKAGE_JSON = require(`../${exports.PACKAGE_JSON_FILENAME}`);
+exports.TS_BUILD_INFO_FILENAME = "tsconfig.tsbuildinfo";
 exports.TOOL_FULL_NAME = exports.TOOL_PACKAGE_JSON.name;
 exports.TOOL_SHORT_NAME = exports.TOOL_FULL_NAME.split('/')[1];
 exports.TOOL_VERSION = exports.TOOL_PACKAGE_JSON.version;

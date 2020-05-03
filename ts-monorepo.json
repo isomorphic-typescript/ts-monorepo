@@ -22,7 +22,7 @@
                                 "@types/comment-json",
                                 "@types/express",
                                 "@types/semver",
-                                "@types/webpack"
+                                "@types/json-schema"
                             ],
                             "dependencies": [
                                 "ansicolor",
@@ -65,7 +65,7 @@
                                 
                                 /* Type Definitions */
                                 "lib": ["esnext"],
-                                "types": ["node"],
+                                "types": ["node", "json-schema"],
                         
                                 /* Code Quality */
                                 "forceConsistentCasingInFileNames": true,

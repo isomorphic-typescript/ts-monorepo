@@ -2,13 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("../common/errors");
 const colorize_special_text_1 = require("../colorize-special-text");
-const crypto = require("crypto");
 const either = require("fp-ts/lib/Either");
 const semver = require("semver");
 const option = require("fp-ts/lib/Option");
 const constants_1 = require("../common/constants");
 const pipeable_1 = require("fp-ts/lib/pipeable");
 const array = require("fp-ts/lib/Array");
+const util_1 = require("../common/util");
 class MonorepoPackageRegistry {
     constructor() {
         this.timesRecalculatedHash = 0;
@@ -145,7 +145,7 @@ class MonorepoPackageRegistry {
         return pipeable_1.pipe(Array.from(this.packages.entries()), array.map(([packageName, monorepoPackage]) => [
             packageName,
             Object.keys(monorepoPackage.relationships.dependsOn)
-        ]), Object.fromEntries, JSON.stringify, this.md5Hash);
+        ]), Object.fromEntries, JSON.stringify, util_1.md5Hash);
     }
     /**
      * @returns monorepo package from registry IFF the following conditions are met:
@@ -172,9 +172,6 @@ class MonorepoPackageRegistry {
                 }
             }
         }
-    }
-    md5Hash(input) {
-        return crypto.createHash("md5").update(input).digest("hex");
     }
 }
 exports.MonorepoPackageRegistry = MonorepoPackageRegistry;

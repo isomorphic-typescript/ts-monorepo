@@ -1,6 +1,7 @@
 import * as path from 'path';
 export const PACKAGE_JSON_FILENAME = "package.json";
-export const TOOL_PACKAGE_JSON = require(`../../${PACKAGE_JSON_FILENAME}`);
+export const TOOL_PACKAGE_JSON = require(`../${PACKAGE_JSON_FILENAME}`);
+export const TS_BUILD_INFO_FILENAME = "tsconfig.tsbuildinfo";
 export const TOOL_FULL_NAME = TOOL_PACKAGE_JSON.name as string;
 export const TOOL_SHORT_NAME = TOOL_FULL_NAME.split('/')[1];
 export const TOOL_VERSION = TOOL_PACKAGE_JSON.version as string;

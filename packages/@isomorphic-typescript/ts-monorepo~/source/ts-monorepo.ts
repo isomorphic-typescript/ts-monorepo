@@ -11,6 +11,7 @@ import { flatten, fold } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { Option, some, none, isSome } from 'fp-ts/lib/Option';
 import { ErrorType, ConfigError } from "./common/errors";
+import { detectProgramChanges } from "./self-change-detector";
 
 const watchers: Terminateable[] = [];
 async function main() {
@@ -59,11 +60,29 @@ async function main() {
             log.warn(`${colorize.file(CONFIG_FILE_NAME)} deleted. Re-add it to resume watching.`);
         }
     }));
+
+
+    function reportChanges(pastTenseVerb: string, files: string[]) {
+        if (files.length === 0) return;
+        log.info(`The following ${files.length} in-program file(s) were ${pastTenseVerb}:`);
+        const leftPad = (files.length + "").length;
+        files.forEach((file, index) => {
+            log.info(` ${((index + 1) + "").padStart(leftPad, ' ')}. ${colorize.file(file)}`);
+        });
+    }
+
     watchers.push(await watch(__filename, {
         async onChange() {
+            const changes = await detectProgramChanges();
+            if (changes === undefined) return;
+
             if (isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
             restartProgram(async () => {
                 log.info("Detected change in program itself.");
+                reportChanges('added', changes.filesAdded);
+                reportChanges('removed', changes.filesRemoved);
+                reportChanges('modified', changes.filesChanged);
+                reportChanges('resigned', changes.filesWithSignatureChanges);
                 log.info("Terminating watchers.");
                 await Promise.all(watchers.map(watcher => watcher.terminate()));
             });

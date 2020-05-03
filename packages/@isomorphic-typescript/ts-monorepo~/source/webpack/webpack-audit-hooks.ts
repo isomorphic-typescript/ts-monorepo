@@ -1,6 +1,6 @@
+/*
 import * as webpack from 'webpack';
 import { log } from "../logging/log";
-import { FinalModule, ModuleGraphConnection, ModuleDependency, NormalModule } from "../common/types/package.d.ts/webpack";
 import { colorize } from "../colorize-special-text";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -41,7 +41,7 @@ export function close() {
     append("}");
     append("@enduml");
 }
-export function appendModule(module: FinalModule, bad: boolean) {
+export function appendModule(module: webpack.Module, bad: boolean) {
     const { debugId, request, rawRequest, userRequest } = module;
     append(`  m${debugId} [label="{req ${request} | raw ${rawRequest} | user ${userRequest}}"${bad ? ` fillcolor=red`: ""}]`);
 }
@@ -135,7 +135,6 @@ export function setUpAudit(compiler: webpack.Compiler) {
             log.info('total modules = ' + modules.length);
             log.info('total records = ' + records.length);
         });
-        */
     });
 
     compiler.hooks.done.tap(AUDIT_TAP_NAME, _stats => {
@@ -143,3 +142,4 @@ export function setUpAudit(compiler: webpack.Compiler) {
         //append("@enduml");
     })
 }
+*/

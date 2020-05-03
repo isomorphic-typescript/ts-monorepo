@@ -1,3 +1,4 @@
+/*
 import * as webpack from 'webpack';
 import * as path from 'path';
 export const generateWebpackConfig = (outputName: string): webpack.Configuration => ({
@@ -11,3 +12,4 @@ export const generateWebpackConfig = (outputName: string): webpack.Configuration
     stats: 'verbose',
     recordsOutputPath: path.resolve('./bundle/records.json')
 });
+*/

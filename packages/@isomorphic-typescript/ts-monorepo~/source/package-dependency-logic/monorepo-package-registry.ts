@@ -4,13 +4,13 @@ import { NodeDependency } from '../common/types/io-ts/config-types';
 import { MergedPackageConfig } from "../common/types/merged-config";
 import { ConfigError, ErrorType } from "../common/errors";
 import { colorize } from "../colorize-special-text";
-import * as crypto from 'crypto';
 import * as either from 'fp-ts/lib/Either';
 import * as semver from 'semver';
 import * as option from 'fp-ts/lib/Option';
 import { Success, SUCCESS } from "../common/constants";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as array from 'fp-ts/lib/Array';
+import { md5Hash } from "../common/util";
 
 export class MonorepoPackageRegistry {
     private readonly packages: Map<string, MonorepoPackage>;
@@ -165,7 +165,7 @@ export class MonorepoPackageRegistry {
             ]),
             Object.fromEntries,
             JSON.stringify,
-            this.md5Hash
+            md5Hash
         );
     }
 
@@ -192,8 +192,5 @@ export class MonorepoPackageRegistry {
                 }
             }
         }
-    }
-    private md5Hash(input: string): string {
-        return crypto.createHash("md5").update(input).digest("hex");
     }
 }

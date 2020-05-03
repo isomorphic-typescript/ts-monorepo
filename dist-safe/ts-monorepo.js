@@ -20,6 +20,7 @@ const Either_1 = require("fp-ts/lib/Either");
 const pipeable_1 = require("fp-ts/lib/pipeable");
 const Option_1 = require("fp-ts/lib/Option");
 const errors_1 = require("./common/errors");
+const self_change_detector_1 = require("./self-change-detector");
 const watchers = [];
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -54,13 +55,29 @@ function main() {
                 log_1.log.warn(`${colorize_special_text_1.colorize.file(constants_1.CONFIG_FILE_NAME)} deleted. Re-add it to resume watching.`);
             }
         }));
+        function reportChanges(pastTenseVerb, files) {
+            if (files.length === 0)
+                return;
+            log_1.log.info(`The following ${files.length} in-program file(s) were ${pastTenseVerb}:`);
+            const leftPad = (files.length + "").length;
+            files.forEach((file, index) => {
+                log_1.log.info(` ${((index + 1) + "").padStart(leftPad, ' ')}. ${colorize_special_text_1.colorize.file(file)}`);
+            });
+        }
         watchers.push(yield watcher_1.watch(__filename, {
             onChange() {
                 return __awaiter(this, void 0, void 0, function* () {
+                    const changes = yield self_change_detector_1.detectProgramChanges();
+                    if (changes === undefined)
+                        return;
                     if (Option_1.isSome(maybeActiveBuildTask))
                         yield maybeActiveBuildTask.value.terminate();
                     restart_program_1.restartProgram(() => __awaiter(this, void 0, void 0, function* () {
                         log_1.log.info("Detected change in program itself.");
+                        reportChanges('added', changes.filesAdded);
+                        reportChanges('removed', changes.filesRemoved);
+                        reportChanges('modified', changes.filesChanged);
+                        reportChanges('resigned', changes.filesWithSignatureChanges);
                         log_1.log.info("Terminating watchers.");
                         yield Promise.all(watchers.map(watcher => watcher.terminate()));
                     }));

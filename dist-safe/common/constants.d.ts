@@ -1,5 +1,6 @@
 export declare const PACKAGE_JSON_FILENAME = "package.json";
 export declare const TOOL_PACKAGE_JSON: any;
+export declare const TS_BUILD_INFO_FILENAME = "tsconfig.tsbuildinfo";
 export declare const TOOL_FULL_NAME: string;
 export declare const TOOL_SHORT_NAME: string;
 export declare const TOOL_VERSION: string;

@@ -1,14 +1,11 @@
 {
-  "name": "@thing/ts-monorepo",
   "version": "1.0.0",
   "author": "Alexander Leung",
   "license": "MIT",
   "scripts": {
     "gen:trusted": "del ./dist-safe && copyfiles --up 4 --all ./packages/@isomorphic-typescript/ts-monorepo~/build/**/* ./dist-safe",
-    "build:old": "tsc -b --watch --verbose",
     "build:safe": "node ./prep-safe.js && yarn install && node ./dist-safe/ts-monorepo.js",
-    "build:rapid": "node ./dist-experiment/ts-monorepo.js",
-    "build:lightspeed": "node ./packages/@isomorphic-typescript/ts-monorepo~/build/ts-monorepo.js",
+    "build:rapid": "node ./packages/@isomorphic-typescript/ts-monorepo~/build/ts-monorepo.js",
     "patch": "yarn run build:normal && git add . && yarn version patch -fm",
     "minor": "yarn run build:normal && git add . && yarn version minor -fm",
     "major": "yarn run build:normal && git add . && yarn version major -fm",
@@ -28,6 +25,9 @@
       "unplugged": true
     },
     "@types/webpack": {
+      "unplugged": true
+    },
+    "fp-ts": {
       "unplugged": true
     },
     "io-ts": {

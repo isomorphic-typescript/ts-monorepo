@@ -1,7 +1,8 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-exports.generateWebpackConfig = (outputName) => ({
+/*
+import * as webpack from 'webpack';
+import * as path from 'path';
+export const generateWebpackConfig = (outputName: string): webpack.Configuration => ({
     mode: "none",
     output: {
         filename: `${outputName}.js`,
@@ -12,4 +13,5 @@ exports.generateWebpackConfig = (outputName) => ({
     stats: 'verbose',
     recordsOutputPath: path.resolve('./bundle/records.json')
 });
+*/ 
 //# sourceMappingURL=webpack.config.js.map
