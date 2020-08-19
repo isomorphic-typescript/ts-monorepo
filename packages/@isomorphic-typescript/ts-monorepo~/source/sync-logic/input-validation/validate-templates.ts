@@ -67,7 +67,7 @@ export function validateAndMergeTemplates(templates: {[name: string]: t.TypeOf<t
                 const [templateName, templateConfig] = currentTemplateEntry;
                 // If all dependencies are in the merged map already.
                 if (templateConfig.extends.filter(mergedTemplatesMap.has.bind(mergedTemplatesMap)).length === templateConfig.extends.length) {
-                    mergedTemplatesMap.set(templateName,mergePackageConfig(mergedTemplatesMap, templateConfig));
+                    mergedTemplatesMap.set(templateName, mergePackageConfig(mergedTemplatesMap, templateConfig));
                 } else {
                     templateEntries.push(currentTemplateEntry);
                 }

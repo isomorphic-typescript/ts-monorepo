@@ -73,18 +73,21 @@ export const exactly = <C extends t.HasProps>(codec: C, name: string = getExcess
     ),
     (a) => codec.encode((stripKeys(a, props) as Right<any>).right),
     codec,
+    codec._tag
   )
 }
 
 export class Exactly<C extends t.Any, A = C['_A'], O = A, I = unknown> extends t.Type<A, O, I> {
-  public readonly _tag: 'ExactType' = "ExactType"
+  public readonly _tag: string;
   public constructor(
     name: string,
     is: Exactly<C, A, O, I>['is'],
     validate: Exactly<C, A, O, I>['validate'],
     encode: Exactly<C, A, O, I>['encode'],
     public readonly type: C,
+    originalTag: string
   ) {
-    super(name, is, validate, encode)
+    super(name, is, validate, encode);
+    this._tag = `Exactly<${originalTag}>`
   }
 }

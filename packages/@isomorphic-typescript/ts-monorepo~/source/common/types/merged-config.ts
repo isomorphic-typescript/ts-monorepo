@@ -9,8 +9,11 @@ export type MergedPackageJson = t.TypeOf<typeof CompletePackageJson> & {
 export interface MergedPackageConfig {
     files: {
         json: {
-            "package.json": MergedPackageJson,
-            "tsconfig.json": typeof MandatoryTSConfigJsonValues
+            "package.json": MergedPackageJson;
+            "tsconfig.json": typeof MandatoryTSConfigJsonValues;
+        },
+        ignore: {
+            [fileName: string]: string[]
         }
     }
     // TODO: include space for skoville config.

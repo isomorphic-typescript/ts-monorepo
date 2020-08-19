@@ -16,7 +16,7 @@ export function mergePackageConfig(templates: Map<string, MergedPackageConfig>,
     = version ? {
         files: {
             json: {
-                "package.json": {
+                [PACKAGE_JSON_FILENAME]: {
                     version
                 }
             }
@@ -35,13 +35,16 @@ export function mergePackageConfig(templates: Map<string, MergedPackageConfig>,
     }
 
     // 3. Merge subject into result.
-    const packageJSON = (subject.files && subject.files.json) ? subject.files.json["package.json"] : undefined;
+    const packageJSON = (subject.files && subject.files.json) ? subject.files.json[PACKAGE_JSON_FILENAME] : undefined;
     const packageConfigMerged = {
         files: {
             ...(subject.files ?? {}),
             json: {
                 ...(subject?.files?.json ?? {}),
-                "package.json": convertToMergedPackageJSON(name, packageJSON)
+                [PACKAGE_JSON_FILENAME]: convertToMergedPackageJSON(name, packageJSON)
+            },
+            ignore: {
+                ...(subject?.files?.ignore ?? {})
             }
         }
     } as MergedPackageConfig;

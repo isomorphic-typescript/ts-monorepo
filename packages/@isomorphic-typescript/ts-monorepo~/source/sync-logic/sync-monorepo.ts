@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as taskEither from 'fp-ts/lib/TaskEither'; // { TaskEither, chain, map, fromEither, fold, right }
+import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as either from 'fp-ts/lib/Either';
 import * as option from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -100,10 +100,4 @@ export function syncMonorepo(): taskEither.TaskEither<ConfigError[], Terminateab
             })
         ))
     );
-    // TODO: clean before compile usage.
-
-    // TODO: we would like to have a feature whereby the user may choose specific package implementations
-    // to override. Otherwise, on every install step, we would be trashing any discrepancies between the
-    // installed dependency and the version of that dependency saved to npm.. This may be unintended behavior
-    // for the user since they may want to override implementations in order to experiment with changes.
 }

@@ -23,6 +23,7 @@ export class CommandRunner {
                 .on("error", err => {
                     log.error("Received Error from process:");
                     log.error(err.stack || err.message);
+                    resolve();
                 })
                 .on("exit", (code, signal) => {
                     const codeMessage = code ? " with code " + code : "";

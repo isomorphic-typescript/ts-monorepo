@@ -10,7 +10,7 @@ export function deepComparison(oldObj: any, newObj: any, keyChain: string): stri
         if(value === undefined) return "";
         if(typeof value === 'object') {
             if (Array.isArray(value)) {
-                return " [" + value.length + "]";
+                return "array of length " + value.length;
             } else {
                 return " {...}";
             }

@@ -9,11 +9,7 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import { eitherCoalesceConfigErrors } from '../error-coalesce';
 
 // TODO: when validating, ensure that client has not explicitly set this (similar to tsconfig.json). Also consider making such logic & validations more generic.
-export const MANDATORY_PACKAGE_JSON_VALUES = {
-    installConfig: {
-        pnp: true
-    }
-};
+export const MANDATORY_PACKAGE_JSON_VALUES = {};
 
 function validateDependencies(dependencies: t.TypeOf<typeof NodeDependency>[] | undefined, dependencyField: string, configLocation: string): either.Either<ConfigError[], Success> {
     if (dependencies) {

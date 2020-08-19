@@ -9,18 +9,19 @@ import { Terminateable } from "./common/types/traits";
 import { tryCatch } from 'fp-ts/lib/TaskEither';
 import { flatten, fold } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
-import { Option, some, none, isSome } from 'fp-ts/lib/Option';
+import { Option, some, none, isSome, isNone } from 'fp-ts/lib/Option';
 import { ErrorType, ConfigError } from "./common/errors";
-import { detectProgramChanges } from "./self-change-detector";
+import { detectProgramChanges, initialize } from "./self-change-detector";
+
+const CONFIG_ERROR_LOGGING_ENABLED = true;
 
 const watchers: Terminateable[] = [];
 async function main() {
-    console.log("");
     log.info(`pid = ${process.pid}`);
     log.info(`${colorize.package(TOOL_SHORT_NAME)} v${TOOL_VERSION}`);
 
     var updateQueued = false; // This ensures that only one sync monorepo operation is occurring at a time.
-    var currentSyncTask = Promise.resolve();
+    var currentSyncTask = initialize(); // Could even be plain Promise.resolve(); doesn't matter really. Just needs to be a promise.
     var maybeActiveBuildTask: Option<Terminateable> = none;
     function queueMonorepoSync() {
         if (updateQueued) return;
@@ -38,13 +39,18 @@ async function main() {
                     } as ConfigError]
                 )(),
                 flatten,
+                thing => {
+                    return thing;
+                },
                 fold(
                     configErrors => {
-                        log.error(`${configErrors.length} errors:\n\n${
-                            configErrors.map(
-                                (configError, index) => `${(index + 1)}. ${colorize.error(configError.type)}\n${configError.message}`
-                            ).join("\n\n")
-                        }\n`);
+                        if (CONFIG_ERROR_LOGGING_ENABLED) {
+                            log.error(`${configErrors.length} errors:\n\n${
+                                configErrors.map(
+                                    (configError, index) => `${(index + 1)}. ${colorize.error(configError.type)}\n${configError.message}`
+                                ).join("\n\n")
+                            }\n`);
+                        }
                         log.info("Waiting for changes...");
                         return none;
                     },
@@ -73,9 +79,12 @@ async function main() {
 
     watchers.push(await watch(__filename, {
         async onChange() {
-            const changes = await detectProgramChanges();
-            if (changes === undefined) return;
-
+            const maybeChanges = await detectProgramChanges();
+            if (isNone(maybeChanges)) {
+                log.info("Waiting for changes...");
+                return;
+            }
+            const changes = maybeChanges.value;
             if (isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
             restartProgram(async () => {
                 log.info("Detected change in program itself.");

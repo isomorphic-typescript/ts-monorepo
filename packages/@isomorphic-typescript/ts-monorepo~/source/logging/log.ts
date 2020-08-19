@@ -1,21 +1,23 @@
-import ansicolor = require("ansicolor");
+import { identity } from 'io-ts';
+import * as ansicolor from 'ansicolor';
 
 const pid = process.pid;
 
-export const MAX_LOG_PREFIX = `  [${pid}  WARN] `.length;
-export const BLANK_PREFIX = ' '.repeat(MAX_LOG_PREFIX);
+function getLogPrefix(colorTransformer: (logType: string) => string, logType: string) {
+    return `[${ansicolor.dim("TSMR")}${ansicolor.darkGray(new String(pid).padEnd(6))}${colorTransformer(logType)}]`;
+}
 
 export const log = {
-    error(message: string) {
-        console.log(`  [${pid} ${ansicolor.lightRed("ERROR")}] ${message}`);
+    error(...subjects: any[]) {
+        console.log(getLogPrefix(ansicolor.lightRed, "E"), ...subjects);
     },
-    warn(message: string) {
-        console.log(`  [${pid}  ${ansicolor.yellow("WARN")}] ${message}`);
+    warn(...subjects: any[]) {
+        console.log(getLogPrefix(ansicolor.yellow, "W"), ...subjects);
     },
-    info(message: string) {
-        console.log(`  [${pid}  INFO] ${message}`);
+    info(...subjects: any[]) {
+        console.log(getLogPrefix(identity, "I"), ...subjects);
     },
-    trace(message: string) {
-        console.log(`  [${pid} ${ansicolor.lightMagenta("TRACE")}] ${message}`);
+    trace(...subjects: any[]) {
+        console.log(getLogPrefix(ansicolor.lightMagenta, "T"), ...subjects);
     }
 }

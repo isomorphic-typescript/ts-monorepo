@@ -1,6 +1,5 @@
 import { MonorepoPackageRegistry } from "../../package-dependency-logic/monorepo-package-registry";
 import { ConfigError, ErrorType } from "../../common/errors";
-import { validateScope } from "./validate-scope";
 import { traversePackageTree, generateInitialContext, ConfigTreeTraversalContext } from "../traverse-package-tree";
 import { validateAndMergeTemplates } from "./validate-templates";
 import { colorize } from "../../colorize-special-text";
@@ -148,17 +147,11 @@ export function validateMonorepoConfig(monorepoConfig: t.TypeOf<typeof TSMonorep
                 taskEither.right,
                 packages => pipe(
                     Object.entries(packages),
-                    array.map(([scope, packagesUnderScope]) => pipe(
-                        validateScope(scope),
-                        either.map(() => generateInitialContext(scope)),
-                        either.map(initialContext => traversePackageTree(
-                            packagesUnderScope,
-                            initialContext,
-                            validatePackage(monorepoConfig, new Map(), mergedTemplates, packageRegistry),
-                            validateJunction
-                        )),
-                        taskEither.fromEither,
-                        taskEither.flatten
+                    array.map(([scope, packagesUnderScope]) => traversePackageTree(
+                        packagesUnderScope,
+                        generateInitialContext(scope),
+                        validatePackage(monorepoConfig, new Map(), mergedTemplates, packageRegistry),
+                        validateJunction
                     )),
                     taskEithercoalesceConfigErrors
                 )

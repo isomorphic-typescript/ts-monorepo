@@ -24,8 +24,7 @@ export const convertErorrs = (pathPrefix: string[], additionalMessage?: string) 
             const keyPath = constructPresentableConfigObjectPath([
                 ...pathPrefix,
                 ...contextWithParentTags
-                    .slice(1)
-                    .filter(contextEntry => contextEntry.parentTag !== 'IntersectionType')
+                    .filter(({parentTag}) => parentTag && !parentTag.includes('IntersectionType'))
                     .map(contextEntry => contextEntry.entry.key)
             ]);
 
@@ -40,7 +39,7 @@ export const convertErorrs = (pathPrefix: string[], additionalMessage?: string) 
                 // else
                     `value ${colorize.badValue(JSON.stringify(badValue))}`;
             return `\n ${ansicolor.magenta('subject:')} ${colorize.file(CONFIG_FILE_NAME)}${keyPath}${
-                 "\n"}   ${ansicolor.red('error:')} expected type ${colorize.type(lastContextEntry.type.name)} but instead got ${badValueString}${additionalMessage ? "\n\n" + additionalMessage : ""}`;
+                 "\n"}   ${ansicolor.red('error:')} expected type ${colorize.type(lastContextEntry.type.name)}, but instead got ${badValueString}${additionalMessage ? "\n\n" + additionalMessage : ""}`;
         })()
     }));
 }

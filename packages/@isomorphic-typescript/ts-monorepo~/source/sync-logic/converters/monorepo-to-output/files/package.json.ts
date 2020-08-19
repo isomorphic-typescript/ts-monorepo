@@ -63,19 +63,32 @@ function convertDependencies(
     );
 }
 
+const dependencyKeys: DependencyType[] = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies'
+];
+
+// Yarn will remove empty deps objects from package.json, so the below line will prevent "adding [peerDependencies]: {...}"
+// messages every time the ts-monorepo.json is saved.
+function removeAllBlankDependencies(properPackageJsonObject: Object): Object {
+    pipe(
+        dependencyKeys,
+        array.filter(key => Object.keys((properPackageJsonObject as any)[key]).length === 0),
+        array.map(key => {
+            delete (properPackageJsonObject as any)[key];
+        })
+    );
+    return properPackageJsonObject;
+}
+
 export function monorepoPackageToPackageJsonOutput(
     monorepoPackage: MonorepoPackage,
     monorepoPackageRegistry: MonorepoPackageRegistry,
     latestVersionGetter: CachedLatestVersionFetcher): taskEither.TaskEither<ConfigError[], Object> {
     const packageJsonConfig = monorepoPackage.config.files.json[PACKAGE_JSON_FILENAME];
     // TODO: typescript version should be validated coming in. It should only be allowed to be equal to the primary typescript version? Maybe
-
-    const dependencyKeys: DependencyType[] = [
-        'dependencies',
-        'devDependencies',
-        'peerDependencies',
-        'optionalDependencies'
-    ];
 
     return pipe(
         dependencyKeys,
@@ -85,6 +98,7 @@ export function monorepoPackageToPackageJsonOutput(
         )),
         taskEitherCoalesceConfigErrorsAndObject,
         taskEither.map(Object.fromEntries),
-        taskEither.map(allConvertedDependencies => Object.assign({}, packageJsonConfig, allConvertedDependencies))
+        taskEither.map(allConvertedDependencies => Object.assign({}, packageJsonConfig, allConvertedDependencies)),
+        taskEither.map(removeAllBlankDependencies)
     );
 }

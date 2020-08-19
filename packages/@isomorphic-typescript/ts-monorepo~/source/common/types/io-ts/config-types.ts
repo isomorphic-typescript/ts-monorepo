@@ -3,7 +3,7 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as either from 'fp-ts/lib/Either';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as option from 'fp-ts/lib/Option';
-import { SUCCESS, Success, PACKAGES_DIRECTORY_NAME, PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX } from '../../constants';
+import { SUCCESS, Success, PACKAGES_DIRECTORY_NAME, PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX, GLOBAL_SCOPE_NAME } from '../../constants';
 import * as array from 'fp-ts/lib/Array';
 import { ConfigError } from '../../errors';
 import { taskEithercoalesceConfigErrors } from '../../../sync-logic/error-coalesce';
@@ -12,6 +12,9 @@ import * as semver from 'semver';
 import { customType } from './custom-type-helpers';
 import { convertErorrs } from './convert-errors';
 import { exactly } from './exactly';
+import { colorize } from '../../../colorize-special-text';
+import validateNpmPackageName = require('validate-npm-package-name');
+import ansicolor from 'ansicolor';
 
 export const SemanticVersion = customType(
     'SemanticVersion',
@@ -22,6 +25,16 @@ export const NodeDependency = customType(
     'TSMonorepoNodeDependency = string | [string, string]',
     (input): input is string | [string, string] => typeof input === 'string' || (Array.isArray(input) && input.length === 2)
 );
+
+export const Scope = customType(
+    `Valid NPM Scope | "${colorize.scope(GLOBAL_SCOPE_NAME)}" ${ansicolor.white("(latter is for packages without a scope)")}`,
+    (input): input is string => {
+        return (
+            typeof input === 'string' && 
+            (input === GLOBAL_SCOPE_NAME || validateNpmPackageName(`${input}/test`).validForNewPackages)
+        );
+    }
+)
 
 const NodeDependencies = t.array(NodeDependency);
 export const CompletePackageJson = t.type({
@@ -52,7 +65,8 @@ export const PackageConfig = exactly(t.intersection([
     }),
     t.partial({
         files: exactly(t.partial({
-            json: JsonConfigs
+            json: JsonConfigs,
+            ignore: t.record(t.string, t.array(t.string))
         })),
         skoville: t.intersection([
             t.type({
@@ -65,7 +79,7 @@ export const PackageConfig = exactly(t.intersection([
             })
         ])
     })
-], typeNamePackageConfig));
+]));
 export const JunctionConfig = t.record(
     t.string,
     t.unknown,
@@ -79,7 +93,8 @@ export const TSMonorepoJson = exactly(t.intersection([
     }),
     t.partial({
         templates: t.record(t.string, PackageConfig),
-        packages: t.UnknownRecord
+        //packages: t.UnknownRecord
+        packages: t.record(Scope, JunctionConfig)
     })
 ]));
 
@@ -129,3 +144,4 @@ export function validateTSMonoRepoJsonShape(input: Object): taskEither.TaskEithe
         ))
     )
 }
+either.chain

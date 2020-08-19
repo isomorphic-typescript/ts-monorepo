@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "0.4.0",
     "ttypescript": false,
     "port": 3000,
     "packages": {
@@ -21,8 +21,7 @@
                                 "@types/node",
                                 "@types/comment-json",
                                 "@types/express",
-                                "@types/semver",
-                                "@types/json-schema"
+                                "@types/semver"
                             ],
                             "dependencies": [
                                 "ansicolor",
@@ -37,10 +36,11 @@
                                 "source-map-support",
                                 ["webpack", "next"],
                                 "validate-npm-package-name",
-                                "ttypescript"
+                                "ts-node",
+                                ["typescript", "3.9.5"]
                             ],
                             "peerDependencies": [
-                                "typescript"
+                                "ttypescript"
                             ],
                             "keywords": [
                                 "typescript",
@@ -65,7 +65,7 @@
                                 
                                 /* Type Definitions */
                                 "lib": ["esnext"],
-                                "types": ["node", "json-schema"],
+                                "types": ["node"],
                         
                                 /* Code Quality */
                                 "forceConsistentCasingInFileNames": true,
@@ -76,6 +76,13 @@
                                 "stripInternal": true
                             }
                         }
+                    },
+                    "ignore": {
+                        ".npmignore": [
+                            "source",
+                            "tsconfig.json",
+                            "tsconfig.tsbuildinfo"
+                        ]
                     }
                 }
             }
