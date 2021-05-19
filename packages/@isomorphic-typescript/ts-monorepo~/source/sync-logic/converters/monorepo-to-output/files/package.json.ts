@@ -19,7 +19,7 @@ const getLatestVersionedDependencyEntry = (targetPackageName: string, dependency
     : taskEither.TaskEither<ConfigError[], [string, string]> => async () => {
     try {
         const latestVersion = await latestVersionGetter.latestVersion(dependencyName);
-        return either.right([dependencyName, latestVersion]);
+        return either.right([dependencyName, `^${latestVersion}`]);
     } catch (e) {
         if (e.name === 'PackageNotFoundError') {
             return either.left([{

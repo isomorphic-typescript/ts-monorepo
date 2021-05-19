@@ -16,6 +16,7 @@
     "@isomorphic-typescript/ts-monorepo": "portal:./packages/@isomorphic-typescript/ts-monorepo~",
     "shx": "^0.3.2",
     "tar": "^6.0.2",
+    "ttypescript": "^1.5.10",
     "typescript": "3.9.5"
   },
   "dependenciesMeta": {

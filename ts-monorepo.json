@@ -1,6 +1,6 @@
 {
     "version": "0.4.0",
-    "ttypescript": false,
+    "ttypescript": true,
     "port": 3000,
     "packages": {
         "@isomorphic-typescript": {
@@ -31,13 +31,18 @@
                                 "express",
                                 "fp-ts",
                                 "io-ts",
+                                "io-ts-types",
+                                "newtype-ts",
+                                "monocle-ts",
                                 "latest-version",
                                 "semver",
                                 "source-map-support",
                                 ["webpack", "next"],
                                 "validate-npm-package-name",
                                 "ts-node",
-                                ["typescript", "3.9.5"]
+                                ["typescript", "3.9.5"],
+                                //  Not using this at the moment, but could be nice to transition away from io-ts for cleaner code in the future
+                                "typescript-is"
                             ],
                             "peerDependencies": [
                                 "ttypescript"
@@ -73,7 +78,12 @@
                                 "noUnusedLocals": true,
                                 "noUnusedParameters": true,
                                 "strict": true, // noImplicitAny noImplicitThis alwaysStrict strictBindCallApply strictFunctionTypes strictPropertyInitialization strictNullChecks
-                                "stripInternal": true
+                                "stripInternal": true,
+                                "plugins": [
+                                    {
+                                        "transform": "typescript-is/lib/transform-inline/transformer"
+                                    }
+                                ]
                             }
                         }
                     },

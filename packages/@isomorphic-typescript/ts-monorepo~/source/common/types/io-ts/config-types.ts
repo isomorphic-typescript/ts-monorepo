@@ -15,6 +15,7 @@ import { exactly } from './exactly';
 import { colorize } from '../../../colorize-special-text';
 import validateNpmPackageName = require('validate-npm-package-name');
 import ansicolor from 'ansicolor';
+import { nonEmptyArray } from 'io-ts-types';
 
 export const SemanticVersion = customType(
     'SemanticVersion',
@@ -68,16 +69,20 @@ export const PackageConfig = exactly(t.intersection([
             json: JsonConfigs,
             ignore: t.record(t.string, t.array(t.string))
         })),
-        skoville: t.intersection([
+        bundle: exactly(t.intersection([
             t.type({
+                target: t.keyof({
+                    node: true,
+                    web: true
+                }),
                 autoRestart: t.boolean,
                 hot: t.boolean,
-                serverAt: t.string
+                entries: nonEmptyArray(t.string)
             }),
             t.partial({
-                entry: t.string
+                clientServerEndpoint: t.string,
             })
-        ])
+        ]))
     })
 ]));
 export const JunctionConfig = t.record(
