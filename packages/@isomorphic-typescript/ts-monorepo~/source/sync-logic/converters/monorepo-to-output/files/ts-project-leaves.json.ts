@@ -12,6 +12,9 @@ export function monorepoPackageRegistryToTSProjectLeavesJsonOutput(monorepoPacka
                     path.resolve(TYPESCRIPT_LEAF_PACKAGES_CONFIG_FILE_ABSOLUTE_PATH, '../'),
                     path.resolve(monorepoPackage.relativePath)
                 )
+                // If we don't use posix sep ('/' instead of windows '\'), then yarn + tsc can run into trouble resolving dependencies
+                // replaceAll not supported by node 14 so using .split.join
+                .split('\\').join('/')
             }))
     };
 }

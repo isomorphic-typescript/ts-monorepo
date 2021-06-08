@@ -10,7 +10,7 @@ import { FileSystemObjectType } from '../../file-system/object';
 import { colorize } from '../../colorize-special-text';
 import { TaskEither, chain } from 'fp-ts/lib/TaskEither';
 import { right } from 'fp-ts/lib/Either';
-import { pipe } from 'fp-ts/lib/pipeable';
+import { pipe } from 'fp-ts/lib/function';
 
 export function writeJsonAndReportChanges(relativePath: string, outputObject: Object): TaskEither<ConfigError[], string> {
     const outputJSONString = JSON.stringify(outputObject, null, 2);

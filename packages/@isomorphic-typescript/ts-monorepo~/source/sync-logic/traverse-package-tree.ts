@@ -4,7 +4,7 @@ import { PACKAGE_NAME_CONFIG_PATH_REQUIRED_SUFFIX, GLOBAL_SCOPE_NAME, PACKAGES_D
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as t from 'io-ts';
 import * as array from 'fp-ts/lib/Array';
-import { pipe } from 'fp-ts/lib/pipeable';
+import { pipe } from 'fp-ts/lib/function';
 import { taskEithercoalesceConfigErrors } from './error-coalesce';
 import { validatePackageConfig, PackageConfig, JunctionConfig, validateJunctionConfig } from '../common/types/io-ts/config-types';
 

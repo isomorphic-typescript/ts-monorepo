@@ -1,6 +1,6 @@
 {
-    "version": "0.4.0",
-    "ttypescript": true,
+    "version": "0.4.2",
+    "ttypescript": false, // right now having some trouble with an error "Error: Debug Failure. False expression: File extension for signature expected to be dts"
     "port": 3000,
     "packages": {
         "@isomorphic-typescript": {
@@ -37,10 +37,10 @@
                                 "latest-version",
                                 "semver",
                                 "source-map-support",
-                                ["webpack", "next"],
+                                "webpack",
                                 "validate-npm-package-name",
                                 "ts-node",
-                                ["typescript", "3.9.5"],
+                                "typescript",
                                 //  Not using this at the moment, but could be nice to transition away from io-ts for cleaner code in the future
                                 "typescript-is"
                             ],
@@ -65,7 +65,7 @@
                         },
                         "tsconfig.json": {
                             "compilerOptions": {
-                                "module": "commonjs", /* need to use this if targetting es6. Not needed when targetting es5 */
+                                "module": "commonjs", // needed for es6 target, not es5 target
                                 "target": "es6",
                                 
                                 /* Type Definitions */

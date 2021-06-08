@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { PACKAGE_JSON_FILENAME, TS_BUILD_INFO_FILENAME, SUCCESS, TOOL_FULL_NAME, Success, TOOL_SHORT_NAME } from "./common/constants";
 import { FileSystemObjectType } from "./file-system/object";
-import { pipe } from 'fp-ts/lib/pipeable';
+import { pipe } from 'fp-ts/lib/function';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as either from 'fp-ts/lib/Either';
 import { ConfigError, ErrorType } from "./common/errors";
@@ -28,14 +28,15 @@ const PROJECT_IS_NOT_IN_DEV_ENV: ConfigError[] = [{
 
 const STANDARD_ANOMALY_PREFIX = `Did detect change in ${colorize.file(TOOL_SHORT_NAME)}, but`;
 
-interface FileInfo {
-    [filename: string]: {
+interface BuildInfo {
+    fileNames: string[];
+    fileInfos: {
         version: string;
         signature: string;
-    }
+    }[];
 }
 
-function getFileInfo() {
+function getBuildInfo() {
     return pipe(
         assertFileSystemObjectType(relativePathToPotentialProjectPackageJson, [FileSystemObjectType.file]),
         taskEither.chain(projectPackageJsonDescriptor => async (): Promise<either.Either<ConfigError[], Success>> => {
@@ -51,7 +52,7 @@ function getFileInfo() {
             return either.right(SUCCESS);
         }),
         taskEither.chain(() => assertFileSystemObjectType(relativePathToPotentialProjectBuildInfo, [FileSystemObjectType.file])),
-        taskEither.chain(projectBuildInfoDescriptor => async (): Promise<either.Either<ConfigError[], Option.Option<FileInfo>>> => {
+        taskEither.chain(projectBuildInfoDescriptor => async (): Promise<either.Either<ConfigError[], Option.Option<BuildInfo>>> => {
             const projectBuildInfoJsonContents = (await fs.promises.readFile(projectBuildInfoDescriptor.path)).toString();
             let projectBuildInfoJson;
             try {
@@ -62,14 +63,14 @@ function getFileInfo() {
                 // but when the ts build info is malformed, we should panic (something's very wrong here)
                 return either.right(Option.none);
             }
-            const fileInfos: FileInfo = projectBuildInfoJson.program.fileInfos;
-            return either.right(Option.some(fileInfos));
+            const buildinfoProgram: BuildInfo = projectBuildInfoJson.program;
+            return either.right(Option.some(buildinfoProgram));
         })
     )
 }
 
-const currentFileInfoPromise: Promise<Option.Option<FileInfo>> = pipe(
-    getFileInfo(),
+const currentBuildInfoPromise: Promise<Option.Option<BuildInfo>> = pipe(
+    getBuildInfo(),
     taskEither.fold(
         _errors => async () => Option.none,
         maybeFileInfo => async () => maybeFileInfo
@@ -77,9 +78,9 @@ const currentFileInfoPromise: Promise<Option.Option<FileInfo>> = pipe(
 )();
 
 export async function initialize() {
-    const maybeFileInfo = await currentFileInfoPromise;
-    if (Option.isSome(maybeFileInfo)) {
-        log.info(`rapid development mode enabled`);
+    const maybeBuildInfo = await currentBuildInfoPromise;
+    if (Option.isSome(maybeBuildInfo)) {
+        log.info(`${colorize.subfeature("build:rapid")} mode enabled`);
     }
 }
 
@@ -97,41 +98,45 @@ const CONFIRMED_CHANGE_BUT_WITH_UNKNOWN_SPECIFICS: ProgramChanges = {
     filesWithSignatureChanges: []
 };
 
-function calculateChanges(oldFileInfo: FileInfo, newFileInfo: FileInfo): Option.Option<ProgramChanges> {
+function calculateChanges(oldBuildInfo: BuildInfo, newBuildInfo: BuildInfo): Option.Option<ProgramChanges> {
     const changes: string[] = [];
     const signatureChanges: string[] = [];
 
-    log.trace(`Rapid dev change detection: old ${colorize.package(TOOL_SHORT_NAME)} tool hash: ${md5Hash(JSON.stringify(oldFileInfo))}`);
-    log.trace(`Rapid dev change detection: new ${colorize.package(TOOL_SHORT_NAME)} tool hash: ${md5Hash(JSON.stringify(newFileInfo))}`);
+    const oldHash = md5Hash(JSON.stringify(oldBuildInfo));
+    const newHash = md5Hash(JSON.stringify(newBuildInfo));
+    if (oldHash === newHash) {
+        log.trace(`${colorize.subfeature("build:rapid")} mode: current ${colorize.package(TOOL_SHORT_NAME)} tool hash is ${oldHash}`);
+    } else {
+        log.trace(`${colorize.subfeature("build:rapid")} mode: change detected; old ${colorize.package(TOOL_SHORT_NAME)} tool hash is ${oldHash}`);
+        log.trace(`${colorize.subfeature("build:rapid")} mode: change detected; new ${colorize.package(TOOL_SHORT_NAME)} tool hash is ${newHash}`);
+    }
 
-    // Keys added
+    // files added
     const added: string[] = [];
-    const newKeys = Object.keys(newFileInfo);
-    newKeys.forEach(newKey => {
-        if (oldFileInfo[newKey] === undefined) {
-            added.push(newKey);
+    newBuildInfo.fileInfos.forEach((_fileInfo, idx) => {
+        if (oldBuildInfo.fileInfos[idx] === undefined) {
+            added.push(newBuildInfo.fileNames[idx]);
         } else {
-            const oldFile = oldFileInfo[newKey];
-            const newFile = newFileInfo[newKey];
+            const oldFile = oldBuildInfo.fileInfos[idx];
+            const newFile = newBuildInfo.fileInfos[idx];
             // Keys where version changed
             if (oldFile.version !== newFile.version) {
-                changes.push(newKey);
+                changes.push(newBuildInfo.fileNames[idx]);
             }
             // Keys where signature changed.
             if (oldFile.signature !== newFile.signature) {
-                signatureChanges.push(newKey);
+                signatureChanges.push(newBuildInfo.fileNames[idx]);
             }
         }
-    });
+    })
 
-    // Keys deleted
+    // files deleted
     const removed: string[] = [];
-    const oldKeys = Object.keys(oldFileInfo);
-    oldKeys.forEach(oldKey => {
-        if (newFileInfo[oldKey] === undefined) {
-            removed.push(oldKey);
+    oldBuildInfo.fileInfos.forEach((_fileInfo, idx) => {
+        if (newBuildInfo.fileInfos[idx] === undefined) {
+            removed.push(oldBuildInfo.fileNames[idx]);
         }
-    });
+    })
 
     const actualChangesOccurred = changes.length > 0 || signatureChanges.length > 0 || added.length > 0 || removed.length > 0;
     if (!actualChangesOccurred) return Option.none;
@@ -145,21 +150,21 @@ function calculateChanges(oldFileInfo: FileInfo, newFileInfo: FileInfo): Option.
 
 // TODO: we should also compare the package.json from before and after
 export const detectProgramChanges = async (): Promise<Option.Option<ProgramChanges>> => {
-    const currentFileInfo = await currentFileInfoPromise;
+    const currentBuildInfo = await currentBuildInfoPromise;
 
-    if (Option.isNone(currentFileInfo)) {
+    if (Option.isNone(currentBuildInfo)) {
         log.warn("No original build info file loaded. Assuming that change occurred");
         return Option.some(CONFIRMED_CHANGE_BUT_WITH_UNKNOWN_SPECIFICS);
     }
 
     return pipe(
-        getFileInfo(),
-        taskEither.chain(newFileInfo => async (): Promise<either.Either<ConfigError[], Option.Option<ProgramChanges>>> => {
-            if (Option.isNone(newFileInfo)) {
+        getBuildInfo(),
+        taskEither.chain(newBuildInfo => async (): Promise<either.Either<ConfigError[], Option.Option<ProgramChanges>>> => {
+            if (Option.isNone(newBuildInfo)) {
                 log.warn("No new build info file loaded. Assuming that change occurred");
                 return either.right(Option.some(CONFIRMED_CHANGE_BUT_WITH_UNKNOWN_SPECIFICS));
             }
-            return either.right(calculateChanges(currentFileInfo.value, newFileInfo.value));
+            return either.right(calculateChanges(currentBuildInfo.value, newBuildInfo.value));
         }),
         taskEither.fold(
             // If any errors happened, we conclude that this could not have been the dev env,

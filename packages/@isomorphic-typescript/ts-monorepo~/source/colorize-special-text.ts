@@ -9,5 +9,6 @@ export const colorize = {
     error: ansicolor.red,
     template: ansicolor.lightMagenta,
     type: ansicolor.lightCyan,
-    badValue: ansicolor.lightRed
+    badValue: ansicolor.lightRed,
+    subfeature: ansicolor.cyan
 };

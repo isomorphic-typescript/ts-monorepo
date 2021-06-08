@@ -3,26 +3,28 @@
   "author": "Alexander Leung",
   "license": "MIT",
   "scripts": {
+    "clean": "shx rm -rf ./.yarn ./packages/@isomorphic-typescript/ts-monorepo~/build && shx rm ./packages/@isomorphic-typescript/ts-monorepo~/tsconfig.tsbuildinfo ./.pnp.js ./.yarnrc.yml ./yarn.lock",
     "gen:pack": "yarn workspace @isomorphic-typescript/ts-monorepo pack",
     "gen:stable": "shx rm -rf ./stable && shx mkdir -p ./stable && node ./scripts/untar.js ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz ./stable",
-    "build:stable": "yarn gen:stable && yarn add -D @isomorphic-typescript/ts-monorepo@portal:./stable && yarn install && ts-monorepo",
-    "build:rapid": "yarn add -D @isomorphic-typescript/ts-monorepo@portal:./packages/@isomorphic-typescript/ts-monorepo~ && yarn install && node ./packages/@isomorphic-typescript/ts-monorepo~/build/ts-monorepo.js",
+    "build:stable": "yarn gen:stable && yarn add -D @isomorphic-typescript/ts-monorepo@portal:./stable && yarn install && yarn ts-monorepo",
+    "build:rapid": "yarn add -D @isomorphic-typescript/ts-monorepo@portal:./packages/@isomorphic-typescript/ts-monorepo~ && yarn install && yarn start:rapid",
+    "start:rapid": "node ./packages/@isomorphic-typescript/ts-monorepo~/build/ts-monorepo.js",
     "build:compile-only": "tsc -b --watch --preserveWatchOutput ./.ts-monorepo/tsconfig-leaves.json",
     "vscode": "yarn add -D @yarnpkg/pnpify && yarn pnpify --sdk && yarn remove @yarnpkg/pnpify",
     "publish:beta": "npm login && npm publish --tag next --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz",
-    "publish:release": "npm login && npm publish --tag release --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz"
+    "publish:release": "npm login && npm publish --tag release --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz",
+    "publish:both": "npm login && npm publish --tag release --tag next --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz"
   },
   "devDependencies": {
     "@isomorphic-typescript/ts-monorepo": "portal:./packages/@isomorphic-typescript/ts-monorepo~",
+    "@yarnpkg/pnpify": "^3.0.0-rc.6",
+    "nodemon": "^2.0.7",
     "shx": "^0.3.2",
     "tar": "^6.0.2",
-    "ttypescript": "^1.5.10",
-    "typescript": "3.9.5"
+    "ttypescript": "^1.5.12",
+    "typescript": "^4.3.2"
   },
   "dependenciesMeta": {
-    "@types/node": {
-      "unplugged": true
-    },
     "@types/webpack": {
       "unplugged": true
     },

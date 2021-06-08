@@ -11,7 +11,7 @@ import * as either from 'fp-ts/lib/Either';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as option from 'fp-ts/lib/Option';
 import * as t from 'io-ts';
-import { pipe } from "fp-ts/lib/pipeable";
+import { pipe } from 'fp-ts/function'
 import * as array from 'fp-ts/lib/Array';
 import { taskEithercoalesceConfigErrors } from "../error-coalesce";
 import { MergedPackageConfig } from "../../common/types/merged-config";

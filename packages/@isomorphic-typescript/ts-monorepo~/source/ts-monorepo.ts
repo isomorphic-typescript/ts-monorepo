@@ -1,4 +1,5 @@
 import "source-map-support/register";
+import { Worker, isMainThread, parentPort } from 'worker_threads';
 import { log } from './logging/log';
 import { restartProgram } from './process/restart-program';
 import { syncMonorepo } from './sync-logic/sync-monorepo';
@@ -8,16 +9,15 @@ import { colorize } from "./colorize-special-text";
 import { Terminateable } from "./common/types/traits";
 import { tryCatch } from 'fp-ts/lib/TaskEither';
 import { flatten, fold } from 'fp-ts/lib/Either';
-import { pipe } from 'fp-ts/lib/pipeable';
+import { pipe } from 'fp-ts/lib/function';
 import { Option, some, none, isSome, isNone } from 'fp-ts/lib/Option';
 import { ErrorType, ConfigError } from "./common/errors";
 import { detectProgramChanges, initialize } from "./self-change-detector";
+import { ChildToParentMessage, ParentToChildMessage } from "./process/parent-child-rpc";
 
 const CONFIG_ERROR_LOGGING_ENABLED = true;
-
 const watchers: Terminateable[] = [];
 async function main() {
-    log.info(`pid = ${process.pid}`);
     log.info(`${colorize.package(TOOL_SHORT_NAME)} v${TOOL_VERSION}`);
 
     var updateQueued = false; // This ensures that only one sync monorepo operation is occurring at a time.
@@ -30,6 +30,7 @@ async function main() {
             updateQueued = false;
             if(isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
             log.info(`Parsing ${colorize.file(CONFIG_FILE_NAME)}`);
+            // TODO: extract port here.
             maybeActiveBuildTask = pipe(
                 await tryCatch(
                     syncMonorepo(),
@@ -85,13 +86,12 @@ async function main() {
                 return;
             }
             const changes = maybeChanges.value;
-            if (isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
             restartProgram(async () => {
-                log.info("Detected change in program itself.");
                 reportChanges('added', changes.filesAdded);
                 reportChanges('removed', changes.filesRemoved);
                 reportChanges('modified', changes.filesChanged);
                 reportChanges('resigned', changes.filesWithSignatureChanges);
+                if (isSome(maybeActiveBuildTask)) await maybeActiveBuildTask.value.terminate();
                 log.info("Terminating watchers.");
                 await Promise.all(watchers.map(watcher => watcher.terminate()));
             });
@@ -101,11 +101,51 @@ async function main() {
     queueMonorepoSync();
 }
 
-main().catch(e => {
-    log.info("Program crashed.");
-    console.log(e.message || e.stack);
-});
+if (isMainThread) {
+    log.info(`pid = ${process.pid}`);
+    log.info(`${colorize.subfeature("Master Thread")}: forking child thread which may be restarted if ${colorize.package(TOOL_SHORT_NAME)}'s own code changes`);
+    function setupChild() {
+        const worker = new Worker(__filename);
+        var restarting = false;
+        worker.on('message', messageBuffer => {
+            const messageStr = messageBuffer.toString();
+            const message: ChildToParentMessage = JSON.parse(messageStr);
+            if (message.type === 'restart') {
+                log.info(`${colorize.subfeature("Master Thread")}: restarting child thread`);
+                const toSend: ParentToChildMessage = { type: 'die' };
+                restarting = true;
+                worker.postMessage(JSON.stringify(toSend));
+            } else {
+                throw new Error(`Unknown message type from child thread ${message.type}`);
+            }
+        });
+        worker.on('exit', () => {
+            if (restarting) {
+                log.info(`${colorize.subfeature("Master Thread")}: forking new child thread`);
+                setTimeout(() => setupChild(), 0);
+            } else {
+                log.info(`child exited without in non-restart condition. Exiting parent process.`);
+                process.exit();
+            }
+        })
+    }
+    setupChild();
+} else {
+    main().catch(e => {
+        log.info("Program crashed.");
+        console.log(e.message || e.stack);
+    });
+    parentPort!.on('message', messageBuffer => {
+        const message: ParentToChildMessage = JSON.parse(messageBuffer.toString());
+        if (message.type === 'die') {
+            process.exit();
+        } else {
+            throw new Error(`Uknown message type from parent ${message.type}`);
+        }
+    });
+}
 
+// This was experimental for trying to make this program a Yarn plugin. Ignore for now.
 export = {
     name: TOOL_SHORT_NAME,
     factory: (require: any) => {

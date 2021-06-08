@@ -2,7 +2,7 @@ import { MonorepoPackageRegistry } from "../../../../package-dependency-logic/mo
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as either from 'fp-ts/lib/Either';
 import { ConfigError } from "../../../../common/errors";
-import { pipe } from 'fp-ts/lib/pipeable';
+import { pipe } from 'fp-ts/lib/function';
 import { assertFileSystemObjectType } from "../../../../file-system/presence-assertions";
 import { MONOREPO_PACKAGE_JSON_RELATIVE_PATH, MONOREPO_PACKAGE_JSON_ABSOLUTE_PATH } from "../../../../common/constants";
 import { FileSystemObjectType } from "../../../../file-system/object";
@@ -15,7 +15,10 @@ export function monorepoPackageRegistryToMonorepoRootPackageJson(monorepoPackage
             const valuesToOverwrite: Object = {
                 private: true,
                 workspaces: Array.from(monorepoPackageRegistry.getRegisteredPackages().values()).map(registeredPackage => {
+                    // If we don't use posix sep ('/' instead of windows '\'), then yarn + tsc can run into trouble resolving dependencies
                     return registeredPackage.relativePath
+                    // replaceAll not supported by node 14 so using .split.join
+                    .split('\\').join('/');
                 })
             };
 
