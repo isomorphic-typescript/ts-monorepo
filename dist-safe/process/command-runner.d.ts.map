@@ -1,1 +1,0 @@
-{"version":3,"file":"command-runner.d.ts","sourceRoot":"","sources":["../../source/process/command-runner.ts"],"names":[],"mappings":"AAIA,qBAAa,aAAa;IAMH,OAAO,CAAC,QAAQ,CAAC,OAAO;IAL3C,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAC,aAAa,CAAwC;IAC7E,OAAO,CAAC,QAAQ,CAAC,cAAc,CAA6B;IAC5D,OAAO,CAAC,QAAQ,CAAC,eAAe,CAAgB;IAChD,OAAO,CAAC,MAAM,CAAS;gBAEa,OAAO,EAAE,MAAM;IA4BtC,aAAa;IAIb,IAAI;CAepB"}
