@@ -1,6 +1,9 @@
-This is a tool which watches a configuration file named `ts-monorepo.json` which resides in the project root.
+This is a tool which helps automate the config management of monorepos which use Yarn 2 for dependency management and TypeScript project references for incremental (only recompile files which changed) compilation of multiple packages.
 
-The file represents a centralized place to store [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) configuration details about all the npm packages within your typescript monorepo.
+The tool will watch a single configuration file named `ts-monorepo.json` which resides in the project root, and from this file, all the config files of the monorepo packages are derived.
+
+The file represents a centralized place to store [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) configuration details about all the npm packages within your typescript monorepo. DRY principle is followed by giving users a reusable and composable `templates` field where any number of templates which define config snippets can be defined and used/combined in different specific packages in the monorepo.
+This makes it easy to have a standard set of TypeScript strictness used in all projects while only needing to declare it once, a standard set of dependencies and typescript settings which can be used across all nodejs monorepo packages or web packages. Eventually it will become possible to have a cononical template for React Native / React XP / Electron development.
 
 # How do I use it?
 
@@ -9,19 +12,9 @@ Install it (Yarn Required):<br />
 - `yarn add -D @isomorphic-typescript/ts-monorepo`
 - `yarn ts-monorepo`
 
-# VSCode doesn't understand my types!
+# How does it work?
 
-This is because ts-monorepo uses Yarn v2 (Berry), which uses Plug-n-Play
-
-- `yarn add -D typescript`
-- `yarn add -D @yarnpkg/pnpify`
-- `yarn pnpify --sdk vscode`
-- In bottom right corner of VSCode click on the version, switch to pnpify version.
-- Install the [ZipFS VSCode extension](https://marketplace.visualstudio.com/items?itemName=arcanis.vscode-zipfs) so you can go to definition for dependencies which are now all in zip files.
-
-# What is it?
-
-Upon change detection of `ts-monorepo.json`, this tool will
+From a high level, upon change detection of `ts-monorepo.json`, this tool will
 1. Validate the config and proceed [iff](https://en.wikipedia.org/wiki/If_and_only_ifs) valid.
 1. Create package folder, required parent folder(s), package.json, & tsconfig.json files if any of these are missing.
 1. Update the existing config files if they were already present.
@@ -37,6 +30,18 @@ This tool is very opinionated in how a monorepo is managed:
 1. Changes to individual package.jsons and tsconfig.jsons will be overwritten during the sync process, so individual settings must be controlled via the centralized config.
 1. The project forces single versioning across all packages in the monorepo.
 1. Certain tsconfig compilerOptions will be enabled without your choice. They are: "composite", "declaration", "declarationMap", "sourceMap". The reasoning behind this can be seen [here](https://github.com/RyanCavanaugh/learn-a#tsconfigsettingsjson). 
+
+# VSCode doesn't understand my types!
+
+This is because ts-monorepo uses Yarn v2 (Berry), which uses Plug-n-Play
+
+- `yarn add -D typescript`
+- `yarn add -D @yarnpkg/pnpify`
+- `yarn pnpify --sdk vscode`
+- In bottom right corner of VSCode click on the version, switch to pnpify version.
+- Install the [ZipFS VSCode extension](https://marketplace.visualstudio.com/items?itemName=arcanis.vscode-zipfs) so you can go to definition for dependencies which are now all in zip files.
+
+# ts-monorepo.json in detail
 
 In order to view an example of how to structure `ts-monorepo.json`, please look at the same file in this repo, as ts-monorepo is maintained using ts-monorepo. Also look [here](https://github.com/skoville/webpack-hot-module-replacement/blob/master/ts-monorepo.json) to see how you can use templates. Basically you can declare as many templates as you want which are snippets of reusable config that can be included in the config files of some packages but not others.
 

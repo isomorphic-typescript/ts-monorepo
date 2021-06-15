@@ -1,5 +1,5 @@
 {
-    "version": "0.4.2",
+    "version": "0.4.3",
     "ttypescript": false, // right now having some trouble with an error "Error: Debug Failure. False expression: File extension for signature expected to be dts"
     "port": 3000,
     "packages": {

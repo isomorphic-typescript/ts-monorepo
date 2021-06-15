@@ -4,17 +4,17 @@
   "license": "MIT",
   "scripts": {
     "clean": "shx rm -rf ./.yarn ./packages/@isomorphic-typescript/ts-monorepo~/build && shx rm ./packages/@isomorphic-typescript/ts-monorepo~/tsconfig.tsbuildinfo ./.pnp.js ./.yarnrc.yml ./yarn.lock",
-    "gen:pack": "yarn workspace @isomorphic-typescript/ts-monorepo pack",
+    "gen:pack": "shx cp ./README.md ./packages/@isomorphic-typescript/ts-monorepo~/ && yarn workspace @isomorphic-typescript/ts-monorepo pack && shx rm ./packages/@isomorphic-typescript/ts-monorepo~/README.md",
     "gen:stable": "shx rm -rf ./stable && shx mkdir -p ./stable && node ./scripts/untar.js ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz ./stable",
     "build:stable": "yarn gen:stable && yarn add -D @isomorphic-typescript/ts-monorepo@portal:./stable && yarn install && yarn ts-monorepo",
     "build:rapid": "yarn add -D @isomorphic-typescript/ts-monorepo@portal:./packages/@isomorphic-typescript/ts-monorepo~ && yarn install && yarn start:rapid",
     "start:rapid": "node ./packages/@isomorphic-typescript/ts-monorepo~/build/ts-monorepo.js",
     "build:compile-only": "tsc -b --watch --preserveWatchOutput ./.ts-monorepo/tsconfig-leaves.json",
     "vscode": "yarn add -D @yarnpkg/pnpify && yarn pnpify --sdk && yarn remove @yarnpkg/pnpify",
-    "publish:npm": "yarn gen:stable && npm login && npm publish --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz",
-    "publish:beta": "publish:npm && node ./scripts/publish.js next",
-    "publish:release": "publish:npm && node ./scripts/publish.js latest",
-    "publish:both": "publish:npm && node ./scripts/publish.js next latest"
+    "publish:npm": "npm login && npm publish --access public ./packages/@isomorphic-typescript/ts-monorepo~/package.tgz",
+    "publish:beta": "publish:npm && yarn gen:stable && node ./scripts/publish.js next",
+    "publish:release": "publish:npm && yarn gen:stable && node ./scripts/publish.js latest",
+    "publish:both": "yarn gen:stable && node ./scripts/publish.js next latest"
   },
   "devDependencies": {
     "@isomorphic-typescript/ts-monorepo": "portal:./packages/@isomorphic-typescript/ts-monorepo~",
